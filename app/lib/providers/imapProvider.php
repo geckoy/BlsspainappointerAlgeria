@@ -36,7 +36,27 @@ class imapProvider implements imap
         
         return $this;
     }
+    public function check_activity()
+    {
+        $mbox = $this->connection_inbox;
+        $MC = imap_check($mbox);
+        $result = array_reverse(imap_fetch_overview($mbox,"1:{$MC->Nmsgs}",0));
+        foreach ($result as $overview) 
+        {
+            $from = utf8_decode(imap_utf8($overview->from));
+                $body = imap_fetchbody($mbox, $overview->msgno,'1'); 
+                $date = date("d", strtotime($overview->date));
+                
+                echo "MESSAGE <br />";
+                echo "=============================== <br />";
+                echo  $from." ".$date."<br />";
+                echo $body;
+                echo "<br />";
+        }
+        imap_close($mbox);
+        return false;
 
+    }
     public function check_token()
     {
         $status_inbox = $this->checking( $this->connection_inbox );

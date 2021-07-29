@@ -85,7 +85,7 @@ class blsappointer
 
     public function __construct(captchasolver $captcha, webscrape $dom, postrequest $request, AppointmentStatus $appointCheckerStatus, imap $imap)
     {
-        $this->package_path = app_path()."\lib";
+        $this->package_path = __DIR__;
         $this->setUpprops($this->package_path);
 
         $captcha->setUp_config($this->url, $this->action, $this->captchaWebsite_key, $this->ImageTyperz_Key);
@@ -102,7 +102,7 @@ class blsappointer
 
     public function setUpprops( $path )
     {
-        $file = fopen($path."\config.txt","r");
+        $file = fopen($path."/config.txt","r");
         while($line = fgets($file))
         {
             if(preg_match("/^url/i", $line))
