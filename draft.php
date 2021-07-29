@@ -28,6 +28,43 @@
     // }
     // dd($mbox);
 
+
+
+
+    //$imap->setUp_config("younesheissenmann.test@gmail.com", "nedjadi1998")->check_activity();        
+    // $con = imap_open("{imap.gmail.com:993/imap/ssl/novalidate-cert}INBOX", "younesheissenmann.test@gmail.com", "nedjadi1998");
+    // $con = imap_open("{vps81152.serveur-vps.net:993/imap/ssl/novalidate-cert}Junk", "admin@mailerman.site", '!Bjjdm$bETCkg');
+    // $mbox = $con;
+    //         $MC = imap_check($mbox);
+    //         $result = array_reverse(imap_fetch_overview($mbox,"1:{$MC->Nmsgs}",0));
+    //         foreach ($result as $overview) 
+    //         {
+    //             $from = utf8_decode(imap_utf8($overview->from));
+    //                 $body = imap_fetchbody($mbox, $overview->msgno,'1'); 
+    //                 $date = date("d", strtotime($overview->date));
+                    
+    //                 echo "MESSAGE <br />";
+    //                 echo "=============================== <br />";
+    //                 echo  $from." ".$date."<br />";
+    //                 echo $body;
+    //                 echo "<br />";
+    //         }
+    //         imap_close($mbox);
+
+    // dd('wooty');
+
+    //$server = '{imap.gmail.com:993/imap/ssl/novalidate-cert}';
+//     $server = '{vps81152.serveur-vps.net:993/imap/ssl/novalidate-cert}';
+    
+//    // $connection = imap_open($server, "younesheissenmann.test@gmail.com", "nedjadi1998");
+
+//      $connection = imap_open($server, "admin@mailerman.site", '!Bjjdm$bETCkg');
+
+//     $mailboxes = imap_list($connection, $server, '*');
+//     imap_close($connection);
+
+//     dd($mailboxes);
+
 #############################################################################
 #############################################################################
 #############################################################################
@@ -104,6 +141,9 @@
     //     }
     //     $this->set_headers( $applicant, $headers);
     // }
+
+
+
 
 
 

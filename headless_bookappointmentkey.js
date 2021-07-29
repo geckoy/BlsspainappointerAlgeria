@@ -24,7 +24,11 @@ var set_up_config = async function()
     const pattern_captchaurl = /^captchaurl=/i;
     const pattern_loginurl = /^loginurl=/i;
     const pattern_appointurl = /^appointurl=/i;
-
+    const pattern_host = /^host=/i;
+    const pattern_user = /^user=/i;
+    const pattern_password = /^password=/i;
+    const pattern_database = /^database=/i;
+    
     configs.on('line', function (line) {
         if(pattern_url.test(line))
         {
@@ -54,6 +58,22 @@ var set_up_config = async function()
         {
             config.loginurl = line.replace(pattern_loginurl, "");
 
+        }else if(pattern_host.test(line))
+        {
+            config.host = line.replace(pattern_host, "");
+
+        }else if(pattern_user.test(line))
+        {
+            config.user = line.replace(pattern_user, "");
+
+        }else if(pattern_password.test(line))
+        {
+            config.password = line.replace(pattern_password, "");
+
+        }else if(pattern_database.test(line))
+        {
+            config.database = line.replace(pattern_database, "");
+
         }
         
         myResolve(config);
@@ -65,12 +85,14 @@ var set_up_config = async function()
 /* Create mysql Db connection */
 var set_up_db = async function()
 {
-    var con = mysql.createConnection({
-        host: "127.0.0.1",//Db.Host
-        user: "root",//Db.Username
-        password: "mysql",//Db.Password
-        database: "blsvisa"//Db.Name
-      });
+    var config = await set_up_config();
+    var args = {
+        host: config.host,//Db.Host
+        user: config.user,//Db.Username
+        password: config.password,//Db.Password
+        database: config.database//Db.Name
+      };
+    var con = mysql.createConnection(args);
     return con;
 }
 
@@ -237,7 +259,7 @@ var otp_token_command = async function(checkerid) {
  
     await page.exposeFunction("sender", sender);
      
-    await page.evaluate( () => {       setInterval(() => { grecaptcha.ready(function() { grecaptcha.execute("6LcLZaAUAAAAAArQGCwKgkh8SQ9_fcCjSpiUFqxZ", {action: "alg_app_first"}).then(function(token) {  sender(token);  });})},1000)                       });
+    await page.evaluate( (config) => {       setInterval(() => { grecaptcha.ready(function() { grecaptcha.execute(config.CaptchaWebsite_Key, {action: config.action}).then(function(token) {  sender(token);  });})},1000)                       }, config);
     
  
     // console.log("end");

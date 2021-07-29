@@ -115,25 +115,10 @@ class IndexController extends Controller
 //             ->header('Content-Type', "image/jpeg");
 // echo  Storage::get('1454DE48pd.php') ;
 //$checker = gmailchecker::where('isLogged', false)->WHERE("isBad",false)->first();
-//$imap->setUp_config("younesheissenmann.test@gmail.com", "nedjadi1998")->check_activity();        
-$con = imap_open("{imap.gmail.com:993/imap/ssl/novalidate-cert}INBOX", "younesheissenmann.test@gmail.com", "nedjadi1998");
-$mbox = $con;
-        $MC = imap_check($mbox);
-        $result = array_reverse(imap_fetch_overview($mbox,"1:{$MC->Nmsgs}",0));
-        foreach ($result as $overview) 
-        {
-            $from = utf8_decode(imap_utf8($overview->from));
-                $body = imap_fetchbody($mbox, $overview->msgno,'1'); 
-                $date = date("d", strtotime($overview->date));
-                
-                echo "MESSAGE <br />";
-                echo "=============================== <br />";
-                echo  $from." ".$date."<br />";
-                echo $body;
-                echo "<br />";
-        }
-        imap_close($mbox);
-        dd("wooty");
+
+//$appointer->check_imap_connectivity("admin@mailerman.site", '!Bjjdm$bETCkg', "inbox");
+
+        dd($appointer);
         //$appointer->get_availability()
 
 

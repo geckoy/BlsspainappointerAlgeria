@@ -18,27 +18,56 @@ class imapProvider implements imap
     private $password;
 
     /**
+     * own mail server
+     */
+    private $ownmail;
+
+    /**
      * user connection to inbox
      */
     private $connection_inbox;
-
+    
     /**
      * user connection to spam
      */
     private $connection_spam;
 
-    public function setUp_config($email, $password)
+    public function setUp_config($ownmail)
+    {
+        $this->ownmail = $ownmail;
+    }
+
+    public function setUp_mailaccount($email, $password)
     {
         $this->email            = $email;
         $this->password         = $password;
-        $this->connection_inbox = imap_open("{imap.gmail.com:993/imap/ssl}INBOX", $this->email, $this->password);
-        $this->connection_spam  = imap_open("{imap.gmail.com:993/ssl}[Gmail]/Spam", $this->email, $this->password);
+        if(preg_match("/@gmail.com/im", $this->email))
+        {
+            $this->connection_inbox = imap_open("{imap.gmail.com:993/imap/ssl/novalidate-cert}INBOX", $this->email, $this->password);
+            $this->connection_spam  = imap_open("{imap.gmail.com:993/imap/ssl/novalidate-cert}[Gmail]/Spam", $this->email, $this->password);
+        }else
+        {
+            $this->connection_inbox = imap_open("{".$this->ownmail.":993/imap/ssl/novalidate-cert}INBOX", $this->email, $this->password);
+            $this->connection_spam  = imap_open("{".$this->ownmail.":993/imap/ssl/novalidate-cert}Junk", $this->email, $this->password);
+        }
+        
         
         return $this;
     }
-    public function check_activity()
+    
+    public function check_activity($mailbox)
     {
-        $mbox = $this->connection_inbox;
+        if($mailbox == "spam")
+        {
+            $mbox = $this->connection_spam;
+        }elseif($mailbox == "inbox")
+        {
+            $mbox = $this->connection_inbox;
+        }else
+        {
+            return false;
+        }
+
         $MC = imap_check($mbox);
         $result = array_reverse(imap_fetch_overview($mbox,"1:{$MC->Nmsgs}",0));
         foreach ($result as $overview) 

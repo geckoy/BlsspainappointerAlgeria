@@ -1,8 +1,16 @@
 url=https://algeria.blsspainvisa.com/english/book_appointment.php
 CaptchaWebsite_Key=6LcLZaAUAAAAAArQGCwKgkh8SQ9_fcCjSpiUFqxZ
-action=CivFirst
+action=alg_app_first
+action_login=al_login
 ImageTyperz_Key=57C162237424468DA5E85898D0A7CB55
 center=oran
 appointurl=https://algeria.blsspainvisa.com/english/appointment.php
 captchaurl=https://algeria.blsspainvisa.com/english/captcha/captcha.php
 loginurl=https://algeria.blsspainvisa.com/english/login.php
+
+ownmail=vps81152.serveur-vps.net
+
+host=127.0.0.1
+user=root
+password=mysql
+database=blsvisa

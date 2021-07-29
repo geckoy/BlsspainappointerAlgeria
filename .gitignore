@@ -14,3 +14,5 @@ yarn-error.log
 /.idea
 /.vscode
 /stats
+bookappointment_key.txt
+login_key.txt

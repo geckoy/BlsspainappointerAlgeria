@@ -48,6 +48,11 @@ class blsappointer
      * center to apply
      */
     public $center;
+
+    /**
+     * Own mail server
+     */
+    public $ownmail;
     /**
      * captcha website key
      */
@@ -91,6 +96,7 @@ class blsappointer
         $captcha->setUp_config($this->url, $this->action, $this->captchaWebsite_key, $this->ImageTyperz_Key);
         $dom->setUp_config($this->url,$this->center);
         $request->setUp_config($this->url, $this->AppointUrl, $this->CaptchaUrl);
+        $imap->setUp_config($this->ownmail);
 
         $this->captcha = $captcha;
         $this->dom = $dom;
@@ -136,6 +142,10 @@ class blsappointer
             }elseif(preg_match("/^loginurl/i", $line))
             {
                 $this->loginurl = trim(str_replace("loginurl=","",$line));
+            
+            }elseif(preg_match("/^ownmail/i", $line))
+            {
+                $this->ownmail = trim(str_replace("ownmail=","",$line));
             }
         }
 
@@ -170,7 +180,7 @@ class blsappointer
 
     public function check_mail( $email, $password )
     {
-        return $this->imap->setUp_config( $email, $password )->check_token();
+        return $this->imap->setUp_mailaccount( $email, $password )->check_token();
     }
 
     public function get_captcha_token($version, $name = NULL)
@@ -203,7 +213,7 @@ class blsappointer
         if($applicant == null) return "nothing to process";
         $applicant->isMailprocessing = true;
         $applicant->save();
-        $code = $this->imap->setUp_config($applicant->gmail,$applicant->password)->check_token();
+        $code = $this->imap->setUp_mailaccount($applicant->gmail,$applicant->password)->check_token();
         if( $code == false )
         {
             $applicant->isMailprocessing = false;
@@ -218,7 +228,7 @@ class blsappointer
     {
         do
         {
-            $code = $this->imap->setUp_config($checker->gmail,$checker->password)->check_otp();
+            $code = $this->imap->setUp_mailaccount($checker->gmail,$checker->password)->check_otp();
 
         }while($code === false);
         
@@ -241,5 +251,10 @@ class blsappointer
     {
        
        return $this->dom->get_select_inputs($html);
+    }
+
+    public function check_imap_connectivity($email, $password, $mbox)
+    {
+        $this->imap->setUp_mailaccount($email, $password)->check_activity($mbox);
     }
 }
