@@ -72,12 +72,14 @@ class imapProvider implements imap
         $result = array_reverse(imap_fetch_overview($mbox,"1:{$MC->Nmsgs}",0));
         foreach ($result as $overview) 
         {
+            if($overview->deleted) continue;
             $from = utf8_decode(imap_utf8($overview->from));
                 $body = imap_fetchbody($mbox, $overview->msgno,'1'); 
                 $date = date("d", strtotime($overview->date));
                 
                 echo "MESSAGE <br />";
                 echo "=============================== <br />";
+                echo "delete : ".$overview->deleted."<br />";
                 echo  $from." ".$date."<br />";
                 echo $body;
                 echo "<br />";
@@ -120,6 +122,7 @@ class imapProvider implements imap
         $result = array_reverse(imap_fetch_overview($mbox,"1:{$MC->Nmsgs}",0));
         foreach ($result as $overview) 
         {
+            if($overview->deleted) continue;
             $from = utf8_decode(imap_utf8($overview->from));
             if( preg_match( "/BLS SPAIN/i",  $from ) )
             {
@@ -131,7 +134,7 @@ class imapProvider implements imap
                     if(preg_match("/Verification(.*|)code.*\d+/im", $body, $verification_code))
                     {
                         preg_match("/\d+/im", $verification_code[0], $code);
-
+                        imap_delete($mbox, $overview->msgno);
                         return $code[0];
 
                             /**
@@ -154,6 +157,7 @@ class imapProvider implements imap
         $result = array_reverse(imap_fetch_overview($mbox,"1:{$MC->Nmsgs}",0));
         foreach ($result as $overview) 
         {
+            if($overview->deleted) continue;
             $from = utf8_decode(imap_utf8($overview->from));
             if( preg_match( "/BLS SPAIN/i",  $from ) )
             {
@@ -167,7 +171,7 @@ class imapProvider implements imap
                         
                    
                         preg_match("/\d+/im", $verification_code[0], $code);
-
+                        imap_delete($mbox, $overview->msgno);
                         return $code[0];
 
                             /**

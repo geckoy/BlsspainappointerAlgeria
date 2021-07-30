@@ -30,3 +30,5 @@ Route::get('/dashboard', [blsappointerController::class, 'dashboard']);
 Route::get('/applicants/waiting-list', [blsappointerController::class, 'applicants']);
 Route::get('/applicants/add-new', [blsappointerController::class, 'add_new']);
 Route::post('/applicants/add-new', [blsappointerController::class, 'submitnewapplicants']);
+Route::get('/bot/add-new-checker', [blsappointerController::class, 'add_checker']);
+Route::post('/bot/add-new-checker', [blsappointerController::class, 'submit_checker']);

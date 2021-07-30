@@ -194,7 +194,7 @@ var otp_token_command = async function(checkerid) {
 
 
     await page.goto(config.loginurl, {
-        waitUntil: 'networkidle0',
+        waitUntil: 'load',
       });
     await page.type('input[name="user_email"]', checker.gmail);
     await Promise.all([

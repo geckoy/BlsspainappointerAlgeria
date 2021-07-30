@@ -58,6 +58,17 @@
                             </ul>
                         </li>
 
+                        <li class="sidebar-item  has-sub @if($path == 'B0T') active @endif">
+                            <a href="#" class='sidebar-link'>
+                                <i class="bi bi-people-fill"></i>
+                                <span>B0T</span>
+                            </a>
+                            <ul class="submenu">
+                                <li class="submenu-item @if($sub_path == 'Add new checker') active @endif">
+                                    <a href="/bot/add-new-checker">Add Checkers</a>
+                                </li>
+                            </ul>
+                        </li>
                         {{-- <li class="sidebar-title">Menu</li>
 
                         <li class="sidebar-item active ">

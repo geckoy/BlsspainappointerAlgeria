@@ -116,7 +116,15 @@ class IndexController extends Controller
 // echo  Storage::get('1454DE48pd.php') ;
 //$checker = gmailchecker::where('isLogged', false)->WHERE("isBad",false)->first();
 
-//$appointer->check_imap_connectivity("admin@mailerman.site", '!Bjjdm$bETCkg', "inbox");
+$appointer->check_imap_connectivity("hamid.bendjilali@mailerman.site", '_SDCdpm5', "inbox");
+
+
+
+
+
+
+
+    dd('wooty');
 
         dd($appointer);
         //$appointer->get_availability()
