@@ -60,7 +60,7 @@ var set_up_config = async function()
 
         }else if(pattern_host.test(line))
         {
-            process.abort();
+            
             config.host = line.replace(pattern_host, "");
 
         }else if(pattern_user.test(line))
@@ -109,7 +109,7 @@ var set_up_db = async function()
     var config = await set_up_config();
     var con = await set_up_db();
         
-    const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.launch();//{ headless: false }
     const page = await browser.newPage();
     // page.setUserAgent("userAgent");
     /*

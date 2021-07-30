@@ -136,6 +136,31 @@ function curl_get_headers(string $url, array $headers)
 }
 
 /**
+ * Curl get request 
+ */
+function curl_get(string $url)
+{
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_HEADER, 1);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    
+    // Receive server response ...
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    
+    $server_output = curl_exec($ch);
+
+    $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+    $header = substr($server_output, 0, $header_size);
+    curl_close ($ch);
+    return [
+        "header_response" => $header,
+        "html_response"   => $server_output
+    ];
+}
+
+/**
  * Curl download captcha with send headers
  */
 function curl_captcha_headers( string $url, $applicant,array $headers )

@@ -158,7 +158,7 @@ class blsappointer
     {   
         $status = $this->dom->get_availability($this);
         
-        
+        return $status;
         if($status[0] === true)   
         {
             $this->appointCheckerStatus->status = $status[0];

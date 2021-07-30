@@ -188,7 +188,7 @@ var otp_token_command = async function(checkerid) {
      var config = await set_up_config();
      var con = await set_up_db();
      var checker = await get_checker();
-     const browser = await puppeteer.launch({ headless: false });
+     const browser = await puppeteer.launch(); //{ headless: false }
      const page = await browser.newPage(); 
 
 

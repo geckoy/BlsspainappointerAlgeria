@@ -37,7 +37,6 @@ class webscrapeProvider implements webscrape
     }
     public function get_center($html)
     {
-         $html = $this->dom->load($html);//#centre
          if($html == NULL ) return false;
          $centers = $html->find("#centre option");
          $center = "";
@@ -84,12 +83,12 @@ class webscrapeProvider implements webscrape
 
     public function get_availability($appointer)
     {//$appointer->loginurl
+
         $gmail_checker = gmailchecker::where('isLogged', true)->WHERE("isBad",false)->WHERE("referer",null)->first();
        
-        
-        
         if($gmail_checker == null)
         {
+            #### RETRIEVE CHECKER IF ITS TIMEOUT ENDED 
             $gmail_checker = gmailchecker::where('isLogged', false)->WHERE("isBad",true)->WHERE("timeout", "<", time())->first();
             
             if($gmail_checker != null)
@@ -106,7 +105,7 @@ class webscrapeProvider implements webscrape
                 if($bookappointment_page == false) return "error #159753";
             }else
             {
-                
+                #### RETRIEVE NEW CHECKER ELSE REPORT NEEDING CHECKERS 
                 $gmail_checker = gmailchecker::where('isLogged', false)->WHERE("isBad",false)->WHERE("referer",null)->first();
                 
                 if($gmail_checker == null) return "alert no checker available";
@@ -125,7 +124,7 @@ class webscrapeProvider implements webscrape
                 "Cookie: {$gmail_checker->PHPSESSID}"
             ]);
             //log::alert("##2");
-            //log::alert($bookappointment_page);
+            
 
             parse_cookie_header( $bookappointment_page["header_response"], $gmail_checker );
             if(preg_match("/You have already sent OTP request.Please try after 30 min./mi",$bookappointment_page["html_response"]))
@@ -150,7 +149,7 @@ class webscrapeProvider implements webscrape
                 $gmail_checker->isBad = 1;
                 $gmail_checker->timeout = (time() + 2100);
                 $gmail_checker->save();
-                return "email error location.href=login.php ";
+                return "email error location.href=login.php";
             }
             
         }
@@ -161,14 +160,20 @@ class webscrapeProvider implements webscrape
         require_once __DIR__."/../../../vendor/simplehtmldom/simplehtmldom/simple_html_dom.php";
         $html = str_get_html($bookappointment_page["html_response"]);
         if($html == NULL) return "submission not readed";
-        
+        log::alert($bookappointment_page);
+        if(preg_match("/Appointment for the Visa Application Centre/im",$bookappointment_page["html_response"]))
+        {
+            
+            return [true, $this->get_center($html)];
+        }else
+        {
             try
             {
                 $html->find(".alertBox")[0];
 
             }catch (\Exception $e) {
                 report($e);
-                return [true,$this->get_center($html)];
+                return false;
             }
         
             if($i = $html->find(".alertBox")[0])
@@ -178,12 +183,13 @@ class webscrapeProvider implements webscrape
                  return 'No appointment : '.$i->plaintext;
                }else
                {
-                 return [true,$this->get_center($html)];
+                 return false;
                }
             }else
             {
-                return [true,$this->get_center($html)];
-            }
+                return false;
+            }   
+        }
     }
 
     public function get_hidden_inputs($html)

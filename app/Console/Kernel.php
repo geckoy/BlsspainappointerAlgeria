@@ -37,8 +37,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->call(function () {
             $appointer = resolve(blsappointer::class);
-            //$appointer->check_availability();
-            //$appointer->check_mailable();
+            //$appointer->get_availability();
         })->everyMinute();
 
         $schedule->call(function () {

@@ -116,17 +116,16 @@ class IndexController extends Controller
 // echo  Storage::get('1454DE48pd.php') ;
 //$checker = gmailchecker::where('isLogged', false)->WHERE("isBad",false)->first();
 
-$appointer->check_imap_connectivity("hamid.bendjilali@mailerman.site", '_SDCdpm5', "inbox");
 
 
 
 
+//dd(curl_get("https://morocco.blsspainvisa.com/english/login.php"));
 
 
+    dd($appointer->get_availability());
 
-    dd('wooty');
-
-        dd($appointer);
+        //dd($appointer);
         //$appointer->get_availability()
 
 

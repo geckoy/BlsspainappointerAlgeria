@@ -49,24 +49,10 @@ class postrequestProvider implements postrequest
         $applicant = applicant::where("isPorcessing", false)->first();
         
         if($applicant == null ) return "All processed";
-        // $applicant->isPorcessing = true;
-        // $applicant->center = $center;
-        // $applicant->save();
-        
-        
+        $applicant->isPorcessing = true;
+        $applicant->center = $center;
+        $applicant->save();
 
-       
-        // do
-        // {
-        //     $token_limit = time();
-        //     $captcha_code = chaptchaKey::where('expiry', '>=', $token_limit )->where('isUsed', '=', false)->orderBy('created_at', 'asc')->first();
-        // }while($captcha_code == null);
-        // $captcha_code->isUsed = true;
-        // $captcha_code->save();
-        
-
-        return $this->request_token( $applicant, $appointer);
-       // return $captcha_code;
         return $applicant->gmail;
     }
     public function request_token($applicant, $appointer)
@@ -137,7 +123,7 @@ class postrequestProvider implements postrequest
         
         do
         {
-            $code = $appointer->imap->setUp_config($applicant->gmail,$applicant->password)->check_token();
+            $code = $appointer->imap->setUp_mailaccount($applicant->gmail,$applicant->password)->check_token();
         }while( $code === false );
         
         $this->request_entry($applicant, $code, $appointer);
@@ -303,13 +289,14 @@ class postrequestProvider implements postrequest
         
 
         ###################################solve Captcha
-
+       if( preg_match( "/captcha.php/im", $last_page_time_request["html_response"] ) )
+       {
             $last_page_request_captcha = curl_captcha_headers( $this->CaptchaUrl, $applicant, [
                 "Cookie: {$applicant->PHPSESSID}; {$applicant->awsalb}; {$applicant->awsalbcors}"
             ] );
             
             $captcha = $appointer->get_captcha_token(0, $applicant->applicants['passport']);
-
+        }
             //Log::alert($captcha);
             
 
