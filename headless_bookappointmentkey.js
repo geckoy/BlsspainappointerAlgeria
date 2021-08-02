@@ -130,6 +130,7 @@ var get_checker = async function() {
             con.query("SELECT * FROM gmailcheckers WHERE isLogged = 0 AND isBad = 1 AND timeout < '" + timestamp + "';", function (err, result) {
                 if (err) throw err;
                 if(result[0] == undefined) {
+                   console.log( 0 );
                    console.log( "no checker available" );
                    process.abort();
                 }
@@ -175,7 +176,11 @@ var otp_token_command = async function(checkerid) {
     return  stdout.trim();
 };
 
- 
+function sleep(ms) 
+{
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+  
   
 //  get_otp_token(7).then(
 //     function(value) { console.log( value ); }
@@ -192,10 +197,11 @@ var otp_token_command = async function(checkerid) {
      const page = await browser.newPage(); 
 
 
-
+    //await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36");
     await page.goto(config.loginurl, {
         waitUntil: 'load',
       });
+    await sleep(3000);
     await page.type('input[name="user_email"]', checker.gmail);
     await Promise.all([
       page.click('input[name="continue"]'),
@@ -206,6 +212,7 @@ var otp_token_command = async function(checkerid) {
    var captcha_error = await page.evaluate(() => (/Current session expired,Please click button again./im).test($("body").html()) );
     if(captcha_error)
     {
+        console.log( 0 );
         console.log("captcha ERROR");
         process.abort();
     }
@@ -219,22 +226,38 @@ var otp_token_command = async function(checkerid) {
         con.query("UPDATE gmailcheckers SET isLogged = 0, isBad = 1, updated_at = '" + current_Time + "',referer = NULL, timeout = '" + ( timestamp + 2100 )+ "' WHERE gmail = '" + checker.gmail + "';", function (err, result) {
             if (err) throw err;
         });
+        console.log( 0 );
+        console.log("Otp Already sent");
+        process.abort();
+    } //We've sent an OTP to the Email cummer.maroc@gmail.com. Please enter it below to complete verification.
+    
+    var otp_sent = await page.evaluate(() => (/We've sent an OTP to the Email/im).test($("body").html()) );
+    if(! otp_sent)
+    {
+        var d = new Date();
+        var current_Time = d.getFullYear() + "-"+ (((d.getMonth() + 1)< 10)? "0"+(d.getMonth() + 1) : (d.getMonth() + 1) ) + "-"+d.getDate() + " " + d.getHours() + ":" + ((d.getMinutes() < 10) ?("0"+d.getMinutes()) : d.getMinutes()) + ":" + ((d.getSeconds() < 10 )? ("0" + d.getSeconds()) : d.getSeconds());
+        var timestamp = Math.floor(new Date().getTime() / 1000);
+        con.query("UPDATE gmailcheckers SET isLogged = 0, isBad = 1, updated_at = '" + current_Time + "',referer = NULL, timeout = '" + ( timestamp + 2100 )+ "' WHERE gmail = '" + checker.gmail + "';", function (err, result) {
+            if (err) throw err;
+        });
+        console.log( 0 );
+        console.log("Connection refused");
         process.abort();
     }
-    
+
     var token = await otp_token_command(checker.id);
     
-
+    
     await page.type('input[name="otp"]', token);
     await page.type('input[name="user_password"]', checker.password_bls);
     await Promise.all([
       page.click('input[name="login"]'),
-      page.waitForNavigation({ waitUntil: 'networkidle0' })
+      page.waitForNavigation({ waitUntil: 'load' })
     ]);
-
+    await sleep(3000);
     
 
-     var sender = function(token) {
+     var sender = async function(token) {
          if(token == "" || token == undefined || token == null)
          {
             var d = new Date();
@@ -243,25 +266,39 @@ var otp_token_command = async function(checkerid) {
             con.query("UPDATE gmailcheckers SET isLogged = 0, isBad = 1, updated_at = '" + current_Time + "',referer = NULL, timeout = '" + ( timestamp + 2100 )+ "' WHERE gmail = '" + checker.gmail + "';", function (err, result) {
                 if (err) throw err;
             });
+            console.log( 0 );
+            console.log("bad token format");
             process.abort();
          }
-         var d = new Date();
+         /*var d = new Date();
          var current_Time = d.getFullYear() + "-"+ (((d.getMonth() + 1)< 10)? "0"+(d.getMonth() + 1) : (d.getMonth() + 1) ) + "-"+d.getDate() + " " + d.getHours() + ":" + ((d.getMinutes() < 10) ?("0"+d.getMinutes()) : d.getMinutes()) + ":" + ((d.getSeconds() < 10 )? ("0" + d.getSeconds()) : d.getSeconds());
          var timestamp = Math.floor(new Date().getTime() / 1000);
          
              var sql = "INSERT INTO chaptcha_keys (captcha_token, expiry,created_at,updated_at) VALUES ('" + token + "', '"+ ( timestamp + 90) + "', '"+ current_Time +"', '"+ current_Time +"')";
              con.query(sql, function (err, result) {
                  if (err) throw err;
-             });
+             });*/
 
-         fs.appendFile('bookappointment_key.txt', (current_Time + " "+ timestamp + " " + token +"\n"), function (err) { if (err) throw err;});
+          console.log(1);
+          console.log(token); 
+
+          var d = new Date();
+          var current_Time = d.getFullYear() + "-"+ (((d.getMonth() + 1)< 10)? "0"+(d.getMonth() + 1) : (d.getMonth() + 1) ) + "-"+d.getDate() + " " + d.getHours() + ":" + ((d.getMinutes() < 10) ?("0"+d.getMinutes()) : d.getMinutes()) + ":" + ((d.getSeconds() < 10 )? ("0" + d.getSeconds()) : d.getSeconds());
+          var timestamp = Math.floor(new Date().getTime() / 1000);
+          con.query("UPDATE gmailcheckers SET isLogged = 0, isBad = 1, updated_at = '" + current_Time + "',referer = NULL, timeout = '" + ( timestamp + 2100 )+ "' WHERE gmail = '" + checker.gmail + "';", function (err, result) {
+              if (err) throw err;
+          });
+          //fs.appendFile('bookappointment_key.txt', (current_Time + " "+ timestamp + " " + token +"\n"), function (err) { if (err) throw err;});
+          await browser.close(); 
+          process.abort(); 
      };
  
     await page.exposeFunction("sender", sender);
      
-    await page.evaluate( (config) => {       setInterval(() => { grecaptcha.ready(function() { grecaptcha.execute(config.CaptchaWebsite_Key, {action: config.action}).then(function(token) {  sender(token);  });})},1000)                       }, config);
+    //await page.evaluate( (config) => {       setInterval(() => { grecaptcha.ready(function() { grecaptcha.execute(config.CaptchaWebsite_Key, {action: config.action}).then(function(token) {  sender(token);  });})},1000)                       }, config);
+    await page.evaluate( () => {   sender($("#g-recaptcha-response").attr("value")); });
     
- 
+    
     // console.log("end");
      //process.abort();
      //await browser.close();

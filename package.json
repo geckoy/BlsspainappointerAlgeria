@@ -19,6 +19,7 @@
         "imap": "^0.8.19",
         "mailparser": "^3.2.0",
         "mysql": "^2.18.1",
-        "puppeteer": "^10.1.0"
+        "puppeteer": "^10.1.0",
+        "user-agents": "^1.0.731"
     }
 }

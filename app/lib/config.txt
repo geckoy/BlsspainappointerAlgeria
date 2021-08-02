@@ -7,6 +7,8 @@ center=tetouan
 appointurl=https://morocco.blsspainvisa.com/english/appointment.php
 captchaurl=https://morocco.blsspainvisa.com/english/captcha/captcha.php
 loginurl=https://morocco.blsspainvisa.com/english/login.php
+ajaxurl=https://morocco.blsspainvisa.com/english/ajax.php
+motherurl=https://morocco.blsspainvisa.com/
 
 ownmail=vps81152.serveur-vps.net
 

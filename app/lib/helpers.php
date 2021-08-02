@@ -192,6 +192,8 @@ function exist_helper_bls()
  */
 function recaptchav3_entry()
 {
+    return "035155-azeokazd-azeadoiakjze";
+
     do
     {
         $token_limit = time();

@@ -24,15 +24,16 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('bls:requestotp {checkerid}', function (blsappointer $appointer, $checkerid) {
+Artisan::command('bls:requestotp {checkermail} {checkerpass}', function (blsappointer $appointer, $checkermail, $checkerpass) {
 
-    $checker = gmailchecker::where('id', $checkerid)->first();
    
-    if($checker == null) { 
-        $this->line("false"); 
-        return 0;
-    }
-    $code = $appointer->check_otp($checker);
+    $code = $appointer->check_otp($checkermail, $checkerpass);
     $this->comment($code);
 })->purpose('retreive otp code of the gmail');
 
+Artisan::command('bls:requestverfication {checkermail} {checkerpass}', function (blsappointer $appointer, $checkermail, $checkerpass) {
+
+   
+    $code = $appointer->check_mail($checkermail, $checkerpass);
+    $this->comment($code);
+})->purpose('retreive verification code of the gmail');

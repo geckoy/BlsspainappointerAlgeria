@@ -103,6 +103,10 @@ var set_up_db = async function()
     var con = mysql.createConnection(args);
     return con;
 };
+function sleep(ms) 
+{
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 (async () => {
    
@@ -121,6 +125,8 @@ var set_up_db = async function()
 
 
     await page.goto(config.loginurl);
+    await sleep(3000);
+
     
     var sender = function(token) {
       if(token == "" || token == undefined || token == null)

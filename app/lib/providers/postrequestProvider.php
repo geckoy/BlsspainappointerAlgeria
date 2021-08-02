@@ -26,22 +26,33 @@ class postrequestProvider implements postrequest
      * AppointUrl
      */
     public $AppointUrl;
+    /**
+     * ajax url
+     */
+    public $ajaxurl;
 
     /**
      * captcha Url
      */
     public $CaptchaUrl;
 
+    /**
+     * Mother Url
+     */
+    public $motherurl;
+
     public function __construct(Http $http)
     {
         $this->request = $http;
     }
 
-    public function setUp_config($url, $AppointUrl, $CaptchaUrl)
+    public function setUp_config($url, $AppointUrl, $CaptchaUrl, $ajaxurl,$motherurl)
     {
         $this->url = $url;
         $this->AppointUrl = $AppointUrl;
         $this->CaptchaUrl = $CaptchaUrl;
+        $this->ajaxurl = $ajaxurl;
+        $this->motherurl = $motherurl;
     }
     
     public function process($appointer, $center)
@@ -52,68 +63,136 @@ class postrequestProvider implements postrequest
         $applicant->isPorcessing = true;
         $applicant->center = $center;
         $applicant->save();
-
+        $this->request_entry($applicant,$appointer);
         return $applicant->gmail;
     }
     public function request_token($applicant, $appointer)
     {
-
-        $bookappointment_page = $this->post_request_bookappointment($appointer, $gmail_checker);
-        if($bookappointment_page == false) return "##error 52132144";
         
-        if($applicant->type == "Individual")
-        {
-            $request_verfication_code = curl_post_headers($this->url, [
-                "app_type"              => "Individual",
-                "member"                => "2",
-                "centre"                => $applicant->center,
-                "category"              => "Normal",
-                "phone_code"            => "213",
-                "phone"                 => $applicant->phonenum,
-                "email"                 => $applicant->gmail,
-                "verification_code"     => "Request verification code",
-                "otp"                   => "",
-                "g-recaptcha-response"  => $captcha_code,
-                "countryID"             => ""
-            ] , [
-                "Cookie: {$applicant->PHPSESSID}"
-            ]);
 
-           // $response = Http::asForm()->post($this->url, );
-        }elseif($applicant->type == "Family")
-        {
-            $request_verfication_code = curl_post_headers($this->url, [
-                "app_type"              => "Family",
-                "member"                => $applicant->members_count,
-                "centre"                => $applicant->center,
-                "category"              => "Normal",
-                "phone_code"            => "213",
-                "phone"                 => $applicant->phonenum,
-                "email"                 => $applicant->gmail,
-                "verification_code"     => "Request verification code",
-                "otp"                   => "",
-                "g-recaptcha-response"  => $captcha_code,
-                "countryID"             => ""
-            ] , [
-                "Cookie: {$applicant->PHPSESSID}"
-            ]);
+        // Log::alert("request token method call");
+        
+        // $bookappointment_page = $this->post_request_bookappointment($appointer, $applicant);
+        
+        // if($bookappointment_page == false) return "##error 52132144";
+        // Log::alert($bookappointment_page);
 
+        // $first_page_token_request_hin = $appointer->retrieve_hidden_inputs($bookappointment_page["html_response"]);
+        // $first_page_token_request_vin = $appointer->retrieve_visible_inputs($bookappointment_page["html_response"]);
+        // $first_page_token_request_sel = $appointer->retrieve_select_inputs($bookappointment_page["html_response"]);
+
+        // // if($applicant->type == "Individual")
+        // // {
+        //     $first_page_token_request_vin["app_type"] = "Individual";
+        //     unset($first_page_token_request_vin['save']);
+        //     $first_page_token_request_hin["g-recaptcha-response"] = recaptchav3_entry(); 
+        //     $first_page_token_request_sel["member"] = "2";
+        //     $first_page_token_request_sel["centre"] = $applicant->center;
+        //     $first_page_token_request_sel["previous_visa_yes_no"] = $first_page_token_request_sel["previous_visa_yes_no"]["Select"];
+        //     $first_page_token_request_sel["category"] = "Normal";
+
+        //     $first_page_token_request_complete = array_merge($first_page_token_request_sel,$first_page_token_request_vin,$first_page_token_request_hin);
             
-        }
-        if( preg_match("/Verification.*code.*sent.*to.*your.*email/im", $request_verfication_code["html_response"] ) )
-        {
-            parse_cookie_header( $request_verfication_code["header_response"],$applicant);
-            $applicant->isMailrequested = true;
-            $applicant->save();
-            $this->check_mailable( $applicant, $appointer);
-        }else
-        {
-            $applicant->isPorcessing = false;
-            $applicant->save();
-            return false;
-        }
+        //     $request_verfication_code = curl_post_headers($this->url, $first_page_token_request_complete , [
+        //         "Cookie: {$applicant->PHPSESSID}",
+        //         "Content-Type: application/x-www-form-urlencoded",
+        //         "origin: https://morocco.blsspainvisa.com",
+        //         "referer: https://morocco.blsspainvisa.com/english/book_appointment.php"
+        //     ]);
+            
+
+        //    // $response = Http::asForm()->post($this->url, );
+        // // }elseif($applicant->type == "Family")
+        // // {   
+        // //     $first_page_token_request_vin["app_type"] = "Family";
+        // //     unset($first_page_token_request_vin['save']);
+        // //     $first_page_token_request_hin["g-recaptcha-response"] = recaptchav3_entry(); 
+        // //     $first_page_token_request_sel["member"] = $applicant->members_count;
+        // //     $first_page_token_request_sel["centre"] = $applicant->center;
+        // //     $first_page_token_request_sel["previous_visa_yes_no"] = $first_page_token_request_sel["previous_visa_yes_no"]["Select"];
+        // //     $first_page_token_request_sel["category"] = "Normal";
+
+        // //     $first_page_token_request_complete = array_merge($first_page_token_request_sel,$first_page_token_request_vin,$first_page_token_request_hin);
+        // //     $request_verfication_code = curl_post_headers($this->url, $first_page_token_request_complete , [
+        // //         "Cookie: {$applicant->PHPSESSID}; {$applicant->awsalb}; {$applicant->awsalbcors}",
+        // //         "content-type: application/x-www-form-urlencoded"
+        // //     ]);
+            
+        // // }
+        // if( preg_match("/Verification.*code.*sent.*to.*your.*email/im", $request_verfication_code["html_response"] ) )
+        // {
+        //     Log::alert("first request token");
+        //     Log::alert($request_verfication_code);
+        //     parse_cookie_header( $request_verfication_code["header_response"],$applicant);
+        //     $applicant->isMailrequested = true;
+        //     $applicant->save();
+        //     $this->check_mailable( $applicant, $appointer);
+        // }else
+        // {
+        //     Log::alert("first request token error");
+        //     Log::alert($this->url);
+        //     Log::alert($request_verfication_code);
+        //     Log::alert($first_page_token_request_complete);
+        //     Log::alert("=======================younes========================");
+        //     Log::alert($first_page_token_request_hin);
+        //     Log::alert($first_page_token_request_vin);
+        //     Log::alert($first_page_token_request_sel);
+        //     Log::alert("=======================aplicante========================");
+        //     Log::alert($applicant);
+        //     $applicant->isPorcessing = false;
+        //     $applicant->save();
+        //     return false;
+        // }
         
         // Log::notice($response->headers());
+
+        // $first_page_entry_request_hin = $appointer->retrieve_hidden_inputs($bookappointment_page["html_response"]);
+        // $first_page_entry_request_vin = $appointer->retrieve_visible_inputs($bookappointment_page["html_response"]);
+        // $first_page_entry_request_sel = $appointer->retrieve_select_inputs($bookappointment_page["html_response"]);
+
+        // if($applicant->type == "Individual")
+        // {
+        //     $first_page_entry_request_vin["app_type"] = "Individual";
+        //     $first_page_entry_request_vin["otp"] = $code;
+        //     unset($first_page_entry_request_vin['verification_code']);
+        //     $first_page_entry_request_hin["g-recaptcha-response"] = recaptchav3_entry(); 
+        //     $first_page_entry_request_sel["member"] = "2";
+        //     $first_page_entry_request_sel["centre"] = $applicant->center;
+        //     $first_page_entry_request_sel["previous_visa_yes_no"] = $first_page_entry_request_sel["previous_visa_yes_no"]["Select"];
+        //     $first_page_entry_request_sel["category"] = "Normal";
+
+        //     $first_page_entry_request_complete = array_merge($first_page_entry_request_sel,$first_page_entry_request_vin,$first_page_entry_request_hin);
+        //     $response = curl_post_headers($this->url, $first_page_entry_request_complete , [
+        //         "Cookie: {$applicant->PHPSESSID}"
+        //     ]);
+        // }elseif($applicant->type == "Family")
+        // {
+        //     $first_page_entry_request_vin["app_type"] = "Family";
+        //     $first_page_entry_request_vin["otp"] = $code;
+        //     unset($first_page_entry_request_vin['verification_code']);
+        //     $first_page_entry_request_hin["g-recaptcha-response"] = recaptchav3_entry(); 
+        //     $first_page_entry_request_sel["member"] = $applicant->members_count;
+        //     $first_page_entry_request_sel["centre"] = $applicant->center;
+        //     $first_page_entry_request_sel["previous_visa_yes_no"] = $first_page_entry_request_sel["previous_visa_yes_no"]["Select"];
+        //     $first_page_entry_request_sel["category"] = "Normal";
+
+        //     $first_page_entry_request_complete = array_merge($first_page_entry_request_sel,$first_page_entry_request_vin,$first_page_entry_request_hin);
+        //     $response = curl_post_headers($this->url, $first_page_entry_request_complete , [
+        //         "Cookie: {$applicant->PHPSESSID}"
+        //     ]);
+        // }
+        // if(! preg_match("/I.*agree.*to.*provide.*my.*Consent/im", $response["html_response"] ))
+        // {
+        //     $applicant->isMailprocessing = false;
+        //     $applicant->isMailrequested = false;
+        //     $applicant->isPorcessing = false;
+        //     $applicant->save();
+        //     return false;
+        // }
+        // Log::alert("second request token");
+        // Log::alert($response);
+        // parse_cookie_header( $response["header_response"],$applicant);
+        // //Log::notice($applicant->PHPSESSID);
     }
 
     public function check_mailable( $applicant, $appointer )
@@ -129,73 +208,40 @@ class postrequestProvider implements postrequest
         $this->request_entry($applicant, $code, $appointer);
     }
 
-    public function request_entry($applicant,$code,$appointer)
+    public function request_entry($applicant,$appointer)
     {
-
-        do
+        exec('node applicant_logger.js '.$applicant->gmail.' '.$applicant->password.' "'.$applicant->password_bls.'"', $output, $retval);
+        Log::alert($output);
+        $status = (bool)$output[0];
+        if(! $status)
         {
-            $token_limit = time();
-            $captcha_code = chaptchaKey::where('expiry', '>=', $token_limit )->where('isUsed', '=', false)->orderBy('created_at', 'asc')->first();
-        }while($captcha_code == null);
-        $captcha_code->isUsed = true;
-        $captcha_code->save();
-
-        if($applicant->type == "Individual")
-        {
-            $response = curl_post_headers($this->url, [
-                "app_type" => "Individual",
-                "member" => "2",
-                "centre" => $applicant->center,
-                "category" => "Normal",
-                "phone_code" => "213",
-                "phone" => $applicant->phonenum,
-                "email" => $applicant->gmail,
-                "otp" => $code,
-                "g-recaptcha-response" => $captcha_code->captcha_token,
-                "countryID" => "",
-                "save" => "Continue"
-            ] , [
-                "Cookie: {$applicant->PHPSESSID}"
-            ]);
-        }elseif($applicant->type == "Family")
-        {
-            $response = curl_post_headers($this->url, [
-                "app_type" => "Family",
-                "member" => $applicant->members_count,
-                "centre" => $applicant->center,
-                "category" => "Normal",
-                "phone_code" => "213",
-                "phone" => $applicant->phonenum,
-                "email" => $applicant->gmail,
-                "otp" => $code,
-                "g-recaptcha-response" => $captcha_code->captcha_token,
-                "countryID" => "",
-                "save" => "Continue"
-            ] , [
-                "Cookie: {$applicant->PHPSESSID}"
-            ]);
-        }
-        if(! preg_match("/I.*agree.*to.*provide.*my.*Consent/im", $response["html_response"] ))
-        {
-            $applicant->isMailprocessing = false;
-            $applicant->isMailrequested = false;
             $applicant->isPorcessing = false;
             $applicant->save();
             return false;
         }
+        //$set_cookie = str_replace(" ",";",$output[1]) ;
+        $set_cookie = $output[1];
+        Log::alert("=====================set_cookie");
+        Log::alert($set_cookie);
 
-        parse_cookie_header( $response["header_response"],$applicant);
-        //Log::notice($applicant->PHPSESSID);
+        $applicant->PHPSESSID = $set_cookie;
+        $applicant->save();
 
         
      #################################################################accept agreement
-       
+        Log::alert("accepting agreement");
         $accept_agreement = curl_post_headers($this->url, array('agree' => 'Agree') , [
-                "Cookie: {$applicant->PHPSESSID}; {$applicant->awsalb}; {$applicant->awsalbcors}"
-            ]);
-        
+                "Cookie: {$applicant->PHPSESSID}",
+                "content-type: application/x-www-form-urlencoded; charset=UTF-8",
+                "origin: {$this->motherurl}",
+                "referer: {$this->url}"
+        ]);
+            
         if(! preg_match("/<script>document.location.href='appointment.php'<\/script>/im", $accept_agreement["html_response"] ))
         {
+            Log::alert("accepting agreement response ERROR :(");
+            Log::alert($accept_agreement);
+
             $applicant->isMailprocessing = false;
             $applicant->isMailrequested = false;
             $applicant->isPorcessing = false;
@@ -203,29 +249,43 @@ class postrequestProvider implements postrequest
             return false;
         }
 
-
+        Log::alert("accepting agreement response :)");
+        Log::alert($accept_agreement);
         parse_cookie_header($accept_agreement["header_response"],$applicant);
 
         
-         
+        
 ///////////////////////////////////////////////////////////REQUEST LAST Page 
     
         $last_page = curl_get_headers($this->AppointUrl, [
-            "Cookie: {$applicant->PHPSESSID}; {$applicant->awsalb}; {$applicant->awsalbcors}"
+            "Cookie: {$applicant->PHPSESSID}; {$applicant->awsalb}; {$applicant->awsalbcors}",
+            "referer: {$this->url}"
         ]);
 
+        Log::alert("fourth last page");
+        Log::alert($last_page);
         //$last_page["html_response"]
         parse_cookie_header($last_page["header_response"],$applicant);
-
+        return 'ended TEMP';
+        
         #########################prepare for request submission
         $available_dates_pattern_js = "/var.*available_dates.*=.*];/im";
        
         if( preg_match($available_dates_pattern_js, $last_page["html_response"], $match_available_dates) )
         {
             $available_dates_pattern = '/"[0-9-]*"/im';
-            preg_match_all($available_dates_pattern, $match_available_dates[0] , $match_available_date);
-            $date_to_appoint = date("Y-m-d",strtotime( (str_replace('"',"", (array_reverse($match_available_date[0]))[0])) ));
-            
+            if(preg_match_all($available_dates_pattern, $match_available_dates[0] , $match_available_date))
+            {
+                $date_to_appoint = date("Y-m-d",strtotime( (str_replace('"',"", (array_reverse($match_available_date[0]))[0])) ));
+            }else
+            {
+                $applicant->isMailprocessing = false;
+                $applicant->isMailrequested = false;
+                $applicant->isPorcessing = false;
+                $applicant->save();
+                Log::alert("Dates aren't available");
+                return false;
+            }
         }else
         {
             $applicant->isMailprocessing = false;
@@ -289,7 +349,24 @@ class postrequestProvider implements postrequest
         
 
         ###################################solve Captcha
-       if( preg_match( "/captcha.php/im", $last_page_time_request["html_response"] ) )
+        $node = $appointer->get_nodeDOM($last_page_time_request["html_response"]);
+        if($node == null ) 
+        {
+            Log::alert("Node Didn't REaded ");
+            return false;
+        }
+        $commented_nodes = $node->find('comment');
+        $is_commented_captcha = false;
+        foreach($commented_nodes as $value)
+        {
+          if(preg_match('/name="captcha"/im',$value->outertext))
+          {
+            $is_commented_captcha = true;
+          }
+        }
+
+
+       if( ! $is_commented_captcha )
        {
             $last_page_request_captcha = curl_captcha_headers( $this->CaptchaUrl, $applicant, [
                 "Cookie: {$applicant->PHPSESSID}; {$applicant->awsalb}; {$applicant->awsalbcors}"
@@ -309,7 +386,10 @@ class postrequestProvider implements postrequest
                 $retrieve_for_filling_inputs["pptIssueDate"] = $applicant->applicants["passportsub"];
                 $retrieve_for_filling_inputs["pptExpiryDate"] = $applicant->applicants["passportex"];
                 $retrieve_for_filling_inputs["pptIssuePalace"] = $applicant->applicants["passportplace"];
-                $retrieve_for_filling_inputs["captcha"] = $captcha;
+                if(  ! $is_commented_captcha  )
+                {
+                    $retrieve_for_filling_inputs["captcha"] = $captcha;
+                }
             }
 
             $post_submission_final = array_merge($retrieve_for_filling_inputs, $retrieve_for_sending_hidden_inputs,$retrieve_for_select_inputs);
@@ -353,13 +433,37 @@ class postrequestProvider implements postrequest
             if( preg_match("/<script>document.location.href='book_appointment.php'<\/script>/i", $before_bookappointment_page["html_response"]) )
             {
                 parse_cookie_header( $before_bookappointment_page["header_response"], $gmail_checker );
+                Log::alert("before_bookappointment_page");
+                Log::alert($before_bookappointment_page);
+
                 $bookappointment_page = curl_get_headers($appointer->url, [
                     "Cookie: {$gmail_checker->PHPSESSID}"
                 ]);
                 //log::alert("##2");
                 //log::alert($bookappointment_page);
                 parse_cookie_header( $bookappointment_page["header_response"], $gmail_checker );
-            
+                
+                if(! preg_match("/PHPSESSID/im", $bookappointment_page["header_response"]))
+                {
+                    //$this->ajaxurl gofor=getAppServiceDetail&cid=
+                    
+                    $center_id = (explode("#",$gmail_checker->center))[1];
+                    Log::alert("center2ID");
+                    Log::alert($center_id);
+                    Log::alert("Cookie: {$gmail_checker->PHPSESSID}");
+                    $ajax_page = curl_post_headers($this->ajaxurl, [
+                            "gofor" => "getAppServiceDetail",
+                            "cid"   => $center_id
+                    ],[
+                            "Cookie: {$gmail_checker->PHPSESSID}",
+                            "content-type: application/x-www-form-urlencoded; charset=UTF-8",
+                            "origin: https://morocco.blsspainvisa.com",
+                            "referer: https://morocco.blsspainvisa.com/english/book_appointment.php"
+                    ]);
+                    Log::alert("AJAX2PAGE");
+                    Log::alert($ajax_page);
+                    parse_cookie_header( $ajax_page["header_response"], $gmail_checker );
+                }
             }else
             {
                 $gmail_checker->isPorcessing = false;
@@ -390,3 +494,17 @@ class postrequestProvider implements postrequest
         return $bookappointment_page;
     }
 }
+
+
+// ,
+//                             "origin: https://morocco.blsspainvisa.com",
+//                             "referer: https://morocco.blsspainvisa.com/english/book_appointment.php",
+//                             'sec-ch-ua: "Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
+//                             "sec-fetch-dest: document",
+//                             "sec-fetch-mode: navigate",
+//                             "sec-fetch-site: same-origin",
+//                             "sec-fetch-user: ?1",
+//                             "upgrade-insecure-requests: 1",
+//                             "user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36",
+//                             "REMOTE_ADDR: 41.97.6.31",
+//                             "HTTP_X_FORWARDED_FOR: 41.97.6.31"

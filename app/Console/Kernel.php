@@ -37,14 +37,25 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->call(function () {
             $appointer = resolve(blsappointer::class);
+            $return = $appointer->get_availability();
+            Log::alert("REturned Value");
+            Log::alert($return);
+
+           
+
+
+            // sleep(10);
+            // Log::alert("this is logged");
             //$appointer->get_availability();
+            // exec('node headless_bookappointmentkey.js', $output, $retval);
+            // Log::alert($output);
         })->everyMinute();
 
-        $schedule->call(function () {
-           $token_limit = time();
-            chaptchaKey::where('expiry', '<=', $token_limit )->delete();
-            chaptcha_keys_login::where('expiry', '<=', $token_limit )->delete();
-        })->everyMinute();
+        // $schedule->call(function () {
+        //    $token_limit = time();
+        //     chaptchaKey::where('expiry', '<=', $token_limit )->delete();
+        //     chaptcha_keys_login::where('expiry', '<=', $token_limit )->delete();
+        // })->everyMinute();
     }
 
     /**

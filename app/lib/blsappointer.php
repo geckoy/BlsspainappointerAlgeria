@@ -41,6 +41,16 @@ class blsappointer
     public $loginurl;
 
     /**
+     * ajax url
+     */
+    public $ajaxurl;
+
+    /**
+     * Mother Url
+     */
+    public $motherurl;
+
+    /**
      * captcha action 
      */
     public $action;
@@ -94,8 +104,8 @@ class blsappointer
         $this->setUpprops($this->package_path);
 
         $captcha->setUp_config($this->url, $this->action, $this->captchaWebsite_key, $this->ImageTyperz_Key);
-        $dom->setUp_config($this->url,$this->center);
-        $request->setUp_config($this->url, $this->AppointUrl, $this->CaptchaUrl);
+        $dom->setUp_config($this->url,$this->center, $this->ajaxurl);
+        $request->setUp_config($this->url, $this->AppointUrl, $this->CaptchaUrl, $this->ajaxurl, $this->motherurl);
         $imap->setUp_config($this->ownmail);
 
         $this->captcha = $captcha;
@@ -146,6 +156,14 @@ class blsappointer
             }elseif(preg_match("/^ownmail/i", $line))
             {
                 $this->ownmail = trim(str_replace("ownmail=","",$line));
+
+            }elseif(preg_match("/^ajaxurl/i", $line))
+            {
+                $this->ajaxurl = trim(str_replace("ajaxurl=","",$line));
+
+            }elseif(preg_match("/^motherurl/i", $line))
+            {
+                $this->motherurl = trim(str_replace("motherurl=","",$line));
             }
         }
 
@@ -156,19 +174,22 @@ class blsappointer
 
     public function get_availability()
     {   
-        $status = $this->dom->get_availability($this);
+        // $status = $this->dom->get_availability($this);
         
-        return $status;
-        if($status[0] === true)   
-        {
-            $this->appointCheckerStatus->status = $status[0];
-            $this->appointCheckerStatus->save();
-            $processed = $this->request->process($this, $status[1]);
+        // if($status[0] === true)   
+        // {
+            // $this->appointCheckerStatus->status = $status[0];
+            // $this->appointCheckerStatus->save();
+            // $processed = $this->request->process($this, $status[1]);
+            // return $processed;
+        // }
+        // $this->appointCheckerStatus->status = $status;
+        // $this->appointCheckerStatus->save();
+        // return $status;
+
+
+            $processed = $this->request->process($this, "12#7");
             return $processed;
-        }
-        $this->appointCheckerStatus->status = $status;
-        $this->appointCheckerStatus->save();
-        return $status;
     }
 
     public function captcha_balance()
@@ -180,7 +201,12 @@ class blsappointer
 
     public function check_mail( $email, $password )
     {
-        return $this->imap->setUp_mailaccount( $email, $password )->check_token();
+        do
+        {
+            sleep(2);
+            $code = $this->imap->setUp_mailaccount( $email, $password )->check_token();
+        }while($code === false);
+        return $code;
     }
 
     public function get_captcha_token($version, $name = NULL)
@@ -224,11 +250,12 @@ class blsappointer
         return $code;
     }
 
-    public function check_otp($checker)
+    public function check_otp($checker_gmail, $checker_pass)
     {
         do
         {
-            $code = $this->imap->setUp_mailaccount($checker->gmail,$checker->password)->check_otp();
+            sleep(2);
+            $code = $this->imap->setUp_mailaccount($checker_gmail,$checker_pass)->check_otp();
 
         }while($code === false);
         
@@ -256,5 +283,9 @@ class blsappointer
     public function check_imap_connectivity($email, $password, $mbox)
     {
         $this->imap->setUp_mailaccount($email, $password)->check_activity($mbox);
+    }
+    public function get_nodeDOM($html)
+    {
+        return $this->dom->get_nodeDOM($html);
     }
 }

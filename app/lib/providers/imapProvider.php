@@ -72,7 +72,7 @@ class imapProvider implements imap
         $result = array_reverse(imap_fetch_overview($mbox,"1:{$MC->Nmsgs}",0));
         foreach ($result as $overview) 
         {
-            if($overview->deleted) continue;
+            //if($overview->deleted) continue;
             $from = utf8_decode(imap_utf8($overview->from));
                 $body = imap_fetchbody($mbox, $overview->msgno,'1'); 
                 $date = date("d", strtotime($overview->date));

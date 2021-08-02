@@ -19,7 +19,11 @@ class webscrapeProvider implements webscrape
      * @URL to scrape
      */
     private $url;
-
+    
+    /**
+     * Ajax url
+     */
+    private $ajaxurl;
     /**
      * center to apply for 
      */
@@ -30,10 +34,11 @@ class webscrapeProvider implements webscrape
         $this->dom = $HtmlWeb;
     }
 
-    public function setUp_config($url,$center)
+    public function setUp_config($url,$center,$ajaxurl)
     {
         $this->url = $url;
         $this->center = $center;
+        $this->ajaxurl = $ajaxurl;
     }
     public function get_center($html)
     {
@@ -160,7 +165,7 @@ class webscrapeProvider implements webscrape
         require_once __DIR__."/../../../vendor/simplehtmldom/simplehtmldom/simple_html_dom.php";
         $html = str_get_html($bookappointment_page["html_response"]);
         if($html == NULL) return "submission not readed";
-        log::alert($bookappointment_page);
+        
         if(preg_match("/Appointment for the Visa Application Centre/im",$bookappointment_page["html_response"]))
         {
             
@@ -173,6 +178,7 @@ class webscrapeProvider implements webscrape
 
             }catch (\Exception $e) {
                 report($e);
+                log::alert($bookappointment_page);
                 return false;
             }
         
@@ -183,10 +189,12 @@ class webscrapeProvider implements webscrape
                  return 'No appointment : '.$i->plaintext;
                }else
                {
+                log::alert($bookappointment_page);
                  return false;
                }
             }else
             {
+                log::alert($bookappointment_page);
                 return false;
             }   
         }
@@ -285,7 +293,22 @@ class webscrapeProvider implements webscrape
                 //log::alert("##2");
                 //log::alert($bookappointment_page);
                 parse_cookie_header( $bookappointment_page["header_response"], $gmail_checker );
-            
+                if(! preg_match("/PHPSESSID/im", $bookappointment_page["header_response"]))
+                {
+                    //$this->ajaxurl gofor=getAppServiceDetail&cid=
+                    require_once __DIR__."/../../../vendor/simplehtmldom/simplehtmldom/simple_html_dom.php";
+                    $html = str_get_html($bookappointment_page["html_response"]);
+
+                    $center_id = (explode("#",$this->get_center($html)))[1];
+                    $ajax_page = curl_post_headers($this->ajaxurl, [
+                            "gofor" => "getAppServiceDetail",
+                            "cid"   => $center_id
+                    ],[
+                            "Cookie: {$gmail_checker->PHPSESSID}"
+                    ]);
+                    
+                    parse_cookie_header( $ajax_page["header_response"], $gmail_checker );
+                }
             }else
             {
                 $gmail_checker->isLogged = 0;
@@ -325,5 +348,11 @@ class webscrapeProvider implements webscrape
         }
 
         return $bookappointment_page;
+    }
+    public function get_nodeDOM($html)
+    {
+        require_once __DIR__."/../../../vendor/simplehtmldom/simplehtmldom/simple_html_dom.php";
+       $html = str_get_html($html);
+       return $html;
     }
 }
