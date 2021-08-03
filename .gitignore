@@ -19,4 +19,4 @@ login_key.txt
 applicant_logger.js
 applicant_loggermaroc.js
 checker_logger.js
-app\lib\config.txt
+app/lib/config.txt
