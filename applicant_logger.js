@@ -144,7 +144,9 @@ function sleep(ms)
     try {
         var config = await set_up_config();
         var cli = await get_cli_arg();    
-        const browser = await puppeteer.launch();//{ headless: false }
+        const browser = await puppeteer.launch({ 
+            args: ['--no-sandbox']
+        });//{ headless: false }
         const page = await browser.newPage();
         
         
