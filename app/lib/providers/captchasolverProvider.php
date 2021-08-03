@@ -20,14 +20,14 @@ class captchasolverProvider implements captchasolver
      */
     public $website= [];
 
-    public function setUp_config($url, $action, $captchaWebsite_key, $ImageTyperz_Key)
+    public function setUp_config($appointer)
     {
-        $this->website["captcha_key"] = $captchaWebsite_key;
-        $this->website["url"] = $url;
-        $this->website["action"] = $action;
+        $this->website["captcha_key"] = $appointer->captchaWebsite_key;
+        $this->website["url"] = $appointer->url;
+        $this->website["action"] = $appointer->action;
 
         require_once base_path("vendor/imagetyperzapi/imagetyperzapi/lib/imagetyperzapi.php");
-        $access_token = $ImageTyperz_Key;
+        $access_token = $appointer->ImageTyperz_Key;
         $this->captcha = new ImagetyperzAPI($access_token);
     }
     public function get_balance()
@@ -65,13 +65,7 @@ class captchasolverProvider implements captchasolver
             // $optional_parameters['minlength'] = '3';            // captcha text length (minimum)
             // $optional_parameters['maxlength'] = '8';            // captcha text length (maximum)
             
-            if(App::environment("local"))
-            {
-                $text = $this->captcha->solve_captcha(__DIR__."/../../../storage/app/public/".$name.".png", $optional_parameters);
-            }elseif(App::environment("production"))
-            {
-                $text = $this->captcha->solve_captcha(__DIR__."/".$name.".png", $optional_parameters);
-            } 
+            $text = $this->captcha->solve_captcha(__DIR__."/../../../storage/app/public/".$name.".png", $optional_parameters);
             
             return  $text;
         }

@@ -13,6 +13,7 @@ use App\Models\AppointmentStatus;
 use Illuminate\Support\Facades\App;
 use App\Jobs\captchaV3Job;
 use App\Models\applicant;
+use App\Models\bls_setting;
 
 class blsappointer
 {
@@ -98,21 +99,25 @@ class blsappointer
      */
     private $appointCheckerStatus;
 
-    public function __construct(captchasolver $captcha, webscrape $dom, postrequest $request, AppointmentStatus $appointCheckerStatus, imap $imap)
+    /**
+     * Settings
+     */
+    public $settings;
+    public function __construct(captchasolver $captcha, webscrape $dom, postrequest $request, AppointmentStatus $appointCheckerStatus, imap $imap, bls_setting $settings)
     {
         $this->package_path = __DIR__;
         $this->setUpprops($this->package_path);
 
-        $captcha->setUp_config($this->url, $this->action, $this->captchaWebsite_key, $this->ImageTyperz_Key);
-        $dom->setUp_config($this->url,$this->center, $this->ajaxurl);
-        $request->setUp_config($this->url, $this->AppointUrl, $this->CaptchaUrl, $this->ajaxurl, $this->motherurl);
+        $captcha->setUp_config($this);
+        $dom->setUp_config($this);
+        $request->setUp_config($this);
         $imap->setUp_config($this->ownmail);
 
         $this->captcha = $captcha;
         $this->dom = $dom;
         $this->request = $request;
         $this->imap = $imap;
-
+        $this->settings = $settings;
         $this->appointCheckerStatus = $appointCheckerStatus;
     }
 
@@ -174,6 +179,26 @@ class blsappointer
 
     public function get_availability()
     {   
+
+
+        $status = $this->dom->get_availability($this);
+        return $status;
+
+
+        $is_appointment_available = bls_setting::where("name", "is_appointment_available")->first();
+        if( $is_appointment_available == null )
+        {
+            $this->settings->name = "is_appointment_available";
+            $this->settings->status = false;
+            $this->settings->save();
+            return "is available created";
+        }
+        if($is_appointment_available->status)
+        {
+            //    $processed = $this->request->process($this, "12#7");
+            //    return $processed;
+        }
+        return "no appoint";
         // $status = $this->dom->get_availability($this);
         
         // if($status[0] === true)   
@@ -186,10 +211,11 @@ class blsappointer
         // $this->appointCheckerStatus->status = $status;
         // $this->appointCheckerStatus->save();
         // return $status;
+        //  $status = $this->dom->get_availability($this);
+        //  return $status;
 
-
-            $processed = $this->request->process($this, "12#7");
-            return $processed;
+        //    $processed = $this->request->process($this, "12#7");
+        //    return $processed;
     }
 
     public function captcha_balance()
@@ -233,23 +259,6 @@ class blsappointer
         // return $captcha_id;
     }
 
-    public function check_mailable()
-    {
-        $applicant = applicant::WHERE("isMailrequested",true)->WHERE("isMailprocessing",false)->WHERE("isAppointed",false)->orderBy('updated_at', 'asc')->first();
-        if($applicant == null) return "nothing to process";
-        $applicant->isMailprocessing = true;
-        $applicant->save();
-        $code = $this->imap->setUp_mailaccount($applicant->gmail,$applicant->password)->check_token();
-        if( $code == false )
-        {
-            $applicant->isMailprocessing = false;
-            $applicant->save();
-            return false;
-        }
-        $this->request->request_entry($applicant, $code, $this);
-        return $code;
-    }
-
     public function check_otp($checker_gmail, $checker_pass)
     {
         do
@@ -284,6 +293,7 @@ class blsappointer
     {
         $this->imap->setUp_mailaccount($email, $password)->check_activity($mbox);
     }
+    
     public function get_nodeDOM($html)
     {
         return $this->dom->get_nodeDOM($html);

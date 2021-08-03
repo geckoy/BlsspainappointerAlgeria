@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\applicant;
 use App\Models\gmailchecker;
+use App\Models\gmailmarocchecker;
+use App\lib\blsappointer;
 
 class blsappointerController extends Controller
 {
@@ -84,52 +86,94 @@ class blsappointerController extends Controller
             "sub_path" => $sub_path 
         ]);
     }
-    public function submit_checker(Request $request, gmailchecker $checker)
+    public function submit_checker(Request $request, gmailchecker $checker,gmailmarocchecker $checkermaroc, blsappointer $appointer)
     {
-   
-        if($request->hasFile('checkersfile'))
+        if($appointer->center == "maroc")
         {
-            if($request->checkersfile->getClientOriginalExtension() == "csv" && $request->checkersfile->isValid())
+            if($request->hasFile('checkersfile'))
             {
-                
-                $file_name = fopen($request->checkersfile,"r");
-                while($row = fgetcsv($file_name))
+                if($request->checkersfile->getClientOriginalExtension() == "csv" && $request->checkersfile->isValid())
                 {
-                    $file[] = $row;
-                }
-                fclose($file_name);
-
-                $gmail_accounts = [];
-                    foreach($file as $value)
-                    {
-                        if(preg_match("/@[A-Za-z]\..*/mi",$value[0]))  return back()->with('error', '<span style=font-weight:bold;">Error!! Not emails</span>');
-                        $gmail_match = gmailchecker::where('gmail', $value[0])->first();
-                        if($gmail_match != NULL) 
-                        {
-                            continue;
-                        }
-                        $gmail_accounts[] = [ 
-                            "gmail"        => $value[0],
-                            "password"     => $value[1],
-                            "password_bls" => $value[2]
-                        ];
-                    } 
-                    gmailchecker::upsert($gmail_accounts, ['gmail']);
                     
-                    // $gmail_match = gmailchecker::where('gmail', $value[0])->first();
-                    // if($gmail_match != NULL) return back()->with('error', 'gmail match');
-                    // $checker->gmail = $value[0];
-                    // $checker->password = $value[1];
-                    // $checker->password_bls = $value[2];
-                    // $checker->save();     
-                return back()->with('success', 'File uploaded');
+                    $file_name = fopen($request->checkersfile,"r");
+                    while($row = fgetcsv($file_name))
+                    {
+                        $file[] = $row;
+                    }
+                    fclose($file_name);
+
+                    $gmail_accounts = [];
+                        foreach($file as $value)
+                        {
+                            if(preg_match("/@[A-Za-z]\..*/mi",$value[0]))  return back()->with('error', '<span style=font-weight:bold;">Error!! Not emails</span>');
+                            $gmail_match = gmailmarocchecker::where('gmail', $value[0])->first();
+                            if($gmail_match != NULL) 
+                            {
+                                continue;
+                            }
+                            $gmail_accounts[] = [ 
+                                "gmail"        => $value[0],
+                                "password"     => $value[1],
+                                "password_bls" => $value[2]
+                            ];
+                        } 
+                        gmailmarocchecker::upsert($gmail_accounts, ['gmail']);
+                             
+                    return back()->with('success', 'File uploaded');
+                }else
+                {
+                    return back()->with('error', '<span style=font-weight:bold;">Error!! check type of file \'csv\'</span>');
+                }
             }else
             {
-                return back()->with('error', '<span style=font-weight:bold;">Error!! check type of file \'csv\'</span>');
+                return back()->with('error', '<span style=font-weight:bold;">Error!! empty request</span>');
             }
         }else
         {
-            return back()->with('error', '<span style=font-weight:bold;">Error!! empty request</span>');
+            if($request->hasFile('checkersfile'))
+            {
+                if($request->checkersfile->getClientOriginalExtension() == "csv" && $request->checkersfile->isValid())
+                {
+                    
+                    $file_name = fopen($request->checkersfile,"r");
+                    while($row = fgetcsv($file_name))
+                    {
+                        $file[] = $row;
+                    }
+                    fclose($file_name);
+
+                    $gmail_accounts = [];
+                        foreach($file as $value)
+                        {
+                            if(preg_match("/@[A-Za-z]\..*/mi",$value[0]))  return back()->with('error', '<span style=font-weight:bold;">Error!! Not emails</span>');
+                            $gmail_match = gmailchecker::where('gmail', $value[0])->first();
+                            if($gmail_match != NULL) 
+                            {
+                                continue;
+                            }
+                            $gmail_accounts[] = [ 
+                                "gmail"        => $value[0],
+                                "password"     => $value[1],
+                                "password_bls" => $value[2]
+                            ];
+                        } 
+                        gmailchecker::upsert($gmail_accounts, ['gmail']);
+                        
+                        // $gmail_match = gmailchecker::where('gmail', $value[0])->first();
+                        // if($gmail_match != NULL) return back()->with('error', 'gmail match');
+                        // $checker->gmail = $value[0];
+                        // $checker->password = $value[1];
+                        // $checker->password_bls = $value[2];
+                        // $checker->save();     
+                    return back()->with('success', 'File uploaded');
+                }else
+                {
+                    return back()->with('error', '<span style=font-weight:bold;">Error!! check type of file \'csv\'</span>');
+                }
+            }else
+            {
+                return back()->with('error', '<span style=font-weight:bold;">Error!! empty request</span>');
+            }
         }
     }
 
@@ -166,6 +210,7 @@ class blsappointerController extends Controller
                 $person["passportex"] = $file[0][8];
                 $person["passportplace"] = $file[0][9];
                 $person["passwordbls"] = $file[0][10];
+                $person["center"] = $file[0][11];
                 $person["companions"] = NULL;
                 if($type == "Family")
                 {
@@ -198,6 +243,7 @@ class blsappointerController extends Controller
                 $applicant->passportsub   = $person["passportsub"];
                 $applicant->passportplace = $person["passportplace"];
                 $applicant->password_bls  = $person["passwordbls"];
+                $applicant->center        = $person["center"];
                 $applicant->type          = $type;//$family_count
                 $applicant->members_count = $family_count;
                 $applicant->save();

@@ -6,6 +6,7 @@ namespace App\lib\providers; // use App\lib\providers\webscrapeProvider;
 use simplehtmldom\HtmlWeb;
 use App\lib\recommendations\webscrape;
 use App\Models\gmailchecker;
+use App\Models\gmailmarocchecker;
 use Illuminate\Support\Facades\Log;
 
 class webscrapeProvider implements webscrape
@@ -34,11 +35,11 @@ class webscrapeProvider implements webscrape
         $this->dom = $HtmlWeb;
     }
 
-    public function setUp_config($url,$center,$ajaxurl)
+    public function setUp_config($appointer)
     {
-        $this->url = $url;
-        $this->center = $center;
-        $this->ajaxurl = $ajaxurl;
+        $this->url = $appointer->url;
+        $this->center = $appointer->center;
+        $this->ajaxurl = $appointer->ajaxurl;
     }
     public function get_center($html)
     {
@@ -55,47 +56,30 @@ class webscrapeProvider implements webscrape
          }
          return $center;
     }
-    public function check_availability()
-    {
-        $html = $this->dom->load($this->url);
-        if($html == NULL ) return "Website Not readed";
-        $center = $this->get_center();
-        if($center === false) return "Center Not Readed";
-
-            try
-            {
-                $html->find(".alertBox")[0];
-
-            }catch (\Exception $e) {
-                report($e);
-                return [true,$center];
-            }
-        
-            if($i = $html->find(".alertBox")[0])
-            {
-               if($this->checkmatch("appoint_unvailable",$i->plaintext)) 
-               {
-                 return 'No appointment : '.$i->plaintext;
-               }else
-               {
-                 return [true,$center];
-               }
-            }else
-            {
-                return [true,$center];
-            }
-    }
+    
 
     public function get_availability($appointer)
     {//$appointer->loginurl
-
-        $gmail_checker = gmailchecker::where('isLogged', true)->WHERE("isBad",false)->WHERE("referer",null)->first();
+        if($appointer->center == "maroc")
+        {
+            $gmail_checker = gmailmarocchecker::where('isLogged', true)->WHERE("isBad",false)->WHERE("referer",null)->first();
+        }else
+        {
+            $gmail_checker = gmailchecker::where('isLogged', true)->WHERE("isBad",false)->WHERE("referer",null)->first();
+        }
+        
        
         if($gmail_checker == null)
         {
-            #### RETRIEVE CHECKER IF ITS TIMEOUT ENDED 
-            $gmail_checker = gmailchecker::where('isLogged', false)->WHERE("isBad",true)->WHERE("timeout", "<", time())->first();
-            
+            #### RETRIEVE CHECKER IF ITS TIMEOUT ENDED
+            if($appointer->center == "maroc")
+            {
+                $gmail_checker = gmailmarocchecker::where('isLogged', false)->WHERE("isBad",true)->WHERE("timeout", "<", time())->first();
+            }else
+            { 
+                $gmail_checker = gmailchecker::where('isLogged', false)->WHERE("isBad",true)->WHERE("timeout", "<", time())->first();
+            }
+
             if($gmail_checker != null)
             {
                 $gmail_checker->referer = null;
@@ -104,23 +88,57 @@ class webscrapeProvider implements webscrape
                 $gmail_checker->timeout = (time() + 2100);
                 $gmail_checker->save();
                 //return $gmail_checker; // test report caught
-
-                $bookappointment_page = $this->post_request_bookappointment($appointer, $gmail_checker);
                 
-                if($bookappointment_page == false) return "error #159753";
+                $bookappointment_page = $this->LOGGER($gmail_checker,$appointer);
+                
+                if($bookappointment_page === true) 
+                {
+                    $gmail_checker->isLogged = 0;
+                    $gmail_checker->isBad = 1;
+                    $gmail_checker->save();
+                    return true;
+                }
+
+                if($bookappointment_page === false)
+                { 
+                    $gmail_checker->isLogged = 0;
+                    $gmail_checker->isBad = 1;
+                    $gmail_checker->save();
+                    return "error occured";
+                }
             }else
             {
-                #### RETRIEVE NEW CHECKER ELSE REPORT NEEDING CHECKERS 
-                $gmail_checker = gmailchecker::where('isLogged', false)->WHERE("isBad",false)->WHERE("referer",null)->first();
-                
+                #### RETRIEVE NEW CHECKER ELSE REPORT NEEDING CHECKERS
+                if($appointer->center == "maroc")
+                {
+                    $gmail_checker = gmailmarocchecker::where('isLogged', false)->WHERE("isBad",false)->WHERE("referer",null)->first();
+                }else
+                {  
+                    $gmail_checker = gmailchecker::where('isLogged', false)->WHERE("isBad",false)->WHERE("referer",null)->first();
+                }
+
                 if($gmail_checker == null) return "alert no checker available";
                 $gmail_checker->isLogged = 1;
+                $gmail_checker->timeout = (time() + 2100);
                 $gmail_checker->save();
                 
-                $bookappointment_page = $this->post_request_bookappointment($appointer, $gmail_checker);
+                $bookappointment_page = $this->LOGGER($gmail_checker,$appointer);
                 
-                if($bookappointment_page == false) return "error #951753";
+                if($bookappointment_page === true) 
+                {
+                    $gmail_checker->isLogged = 0;
+                    $gmail_checker->isBad = 1;
+                    $gmail_checker->save();
+                    return true;
+                }
 
+                if($bookappointment_page === false)
+                { 
+                    $gmail_checker->isLogged = 0;
+                    $gmail_checker->isBad = 1;
+                    $gmail_checker->save();
+                    return "error occured";
+                }
             }
            
         }else
@@ -156,7 +174,6 @@ class webscrapeProvider implements webscrape
                 $gmail_checker->save();
                 return "email error location.href=login.php";
             }
-            
         }
 
 
@@ -168,8 +185,9 @@ class webscrapeProvider implements webscrape
         
         if(preg_match("/Appointment for the Visa Application Centre/im",$bookappointment_page["html_response"]))
         {
-            
-            return [true, $this->get_center($html)];
+            log::alert("When Apppointment is available");
+            log::alert($bookappointment_page);
+            return true;
         }else
         {
             try
@@ -189,7 +207,7 @@ class webscrapeProvider implements webscrape
                  return 'No appointment : '.$i->plaintext;
                }else
                {
-                log::alert($bookappointment_page);
+                 log::alert($bookappointment_page);
                  return false;
                }
             }else
@@ -256,99 +274,26 @@ class webscrapeProvider implements webscrape
         ];
         return preg_match($pattern[$patternName], $str);
     }
-
-    public function post_request_bookappointment($appointer, $gmail_checker)
+    public function LOGGER($gmail_checker,$appointer)
     {
-        $request_login = curl_post($appointer->loginurl,  [
-            "user_email"           => $gmail_checker->gmail,
-            "g-recaptcha-response" => recaptchav3_login(),
-            "continue"             => "Continue"
-        ]);
-        
-        if( preg_match("/We've sent an OTP to the Email/i", $request_login["html_response"]) )
+        exec('node checker_logger.js '.$gmail_checker->gmail.' '.$gmail_checker->password.' "'.$gmail_checker->password_bls.'"', $output, $retval);
+        $status = (bool)$output[0];
+        if(! $status) return false;
+        if($output[1] == "Appointment Available")
         {
-            
-            parse_cookie_header( $request_login["header_response"], $gmail_checker );
-            
-            $code = $appointer->check_otp($gmail_checker);
-
-            if($code == false) return false;
-            $before_bookappointment_page = curl_post_headers($appointer->loginurl, [
-                "otp"=> $code,
-                "user_password" => $gmail_checker->password_bls,
-                "g-recaptcha-response" => recaptchav3_login(),
-                "login" => "Login"
-            ],[
-                "Cookie: {$gmail_checker->PHPSESSID}"
-            ]);
-            
-            
-            
-            if( preg_match("/<script>document.location.href='book_appointment.php'<\/script>/i", $before_bookappointment_page["html_response"]) )
-            {
-                parse_cookie_header( $before_bookappointment_page["header_response"], $gmail_checker );
-                $bookappointment_page = curl_get_headers($appointer->url, [
-                    "Cookie: {$gmail_checker->PHPSESSID}"
-                ]);
-                //log::alert("##2");
-                //log::alert($bookappointment_page);
-                parse_cookie_header( $bookappointment_page["header_response"], $gmail_checker );
-                if(! preg_match("/PHPSESSID/im", $bookappointment_page["header_response"]))
-                {
-                    //$this->ajaxurl gofor=getAppServiceDetail&cid=
-                    require_once __DIR__."/../../../vendor/simplehtmldom/simplehtmldom/simple_html_dom.php";
-                    $html = str_get_html($bookappointment_page["html_response"]);
-
-                    $center_id = (explode("#",$this->get_center($html)))[1];
-                    $ajax_page = curl_post_headers($this->ajaxurl, [
-                            "gofor" => "getAppServiceDetail",
-                            "cid"   => $center_id
-                    ],[
-                            "Cookie: {$gmail_checker->PHPSESSID}"
-                    ]);
-                    
-                    parse_cookie_header( $ajax_page["header_response"], $gmail_checker );
-                }
-            }else
-            {
-                $gmail_checker->isLogged = 0;
-                $gmail_checker->isBad = 1;
-                $gmail_checker->timeout = (time() + 2100);
-                $gmail_checker->save();
-                //log::alert("##48441");
-                //log::alert($before_bookappointment_page);
-                //log::alert($code);
-                return false;
-            }
-            
-
-        }elseif( preg_match("/You have already sent OTP request./mi", $request_login["html_response"]) )
-        {
-            $gmail_checker->isLogged = 0;
-            $gmail_checker->isBad = 1;
-            $gmail_checker->timeout = (time() + 2100);
-            $gmail_checker->save();
-            return false;
-            # set timeout
-
-        }elseif(preg_match("/al_login/mi",$request_login["html_response"]))
-        {
-            $gmail_checker->isLogged = 0;
-            $gmail_checker->isBad = 1;
-            $gmail_checker->timeout = (time() + 2100);
-            $gmail_checker->save();
-            return false;
-        }elseif(preg_match("/<script>document.location.href='login.php'<\/script>/mi",$request_login["html_response"]))
-        {
-            $gmail_checker->isLogged = 0;
-            $gmail_checker->isBad = 1;
-            $gmail_checker->timeout = (time() + 2100);
-            $gmail_checker->save();
-            return false;
+            return true;
         }
+        $gmail_checker->PHPSESSID = $output[1];
+        $gmail_checker->save();
 
+        $bookappointment_page = curl_get_headers($appointer->url, [
+            "Cookie: {$gmail_checker->PHPSESSID}"
+        ]);
+        parse_cookie_header( $bookappointment_page["header_response"], $gmail_checker );
+        
         return $bookappointment_page;
     }
+
     public function get_nodeDOM($html)
     {
         require_once __DIR__."/../../../vendor/simplehtmldom/simplehtmldom/simple_html_dom.php";

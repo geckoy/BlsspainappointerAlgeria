@@ -41,14 +41,6 @@ class Kernel extends ConsoleKernel
             Log::alert("REturned Value");
             Log::alert($return);
 
-           
-
-
-            // sleep(10);
-            // Log::alert("this is logged");
-            //$appointer->get_availability();
-            // exec('node headless_bookappointmentkey.js', $output, $retval);
-            // Log::alert($output);
         })->everyMinute();
 
         // $schedule->call(function () {
