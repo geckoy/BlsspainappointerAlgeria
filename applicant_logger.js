@@ -141,190 +141,195 @@ function sleep(ms)
 
 
  (async () => {
-    
-     var config = await set_up_config();
-     var cli = await get_cli_arg();    
-     const browser = await puppeteer.launch();//{ headless: false }
-     const page = await browser.newPage();
-     
-     
-    
-     
-     // page.setUserAgent("userAgent");
-     /*
-     {
-         ignoreHTTPSErrors: true,
-         args: [ '--proxy-server=https://41.174.179.147:8080' ]
-     }
-     */
-    
-    await page.setUserAgent(userAgent.toString());
-    var response = await page.goto(config.loginurl);
-    await sleep(500);
-
-    await page.type('input[name="user_email"]', cli.email);
-    await Promise.all([
-      page.click('input[name="continue"]'),
-      page.waitForNavigation({ waitUntil: 'networkidle0' })
-    ]);
-    
-   //Current session expired,Please click button again.
-   var captcha_error = await page.evaluate(() => (/Current session expired,Please click button again./im).test($("body").html()) );
-    if(captcha_error)
-    {
-        console.log( 0 );
-        console.log("captcha ERROR");
-        process.exit();
-    }
-     
-   var otp_already_sent = await page.evaluate(() => (/You have already sent OTP request.Please try after 30 min./im).test($("body").html()) );
-    if(otp_already_sent)
-    {
-        console.log( 0 );
-        console.log("Otp Already sent");
-        process.exit();
-    } //We've sent an OTP to the Email cummer.maroc@gmail.com. Please enter it below to complete verification.
-    
-    var otp_sent = await page.evaluate(() => (/We've sent an OTP to the Email/im).test($("body").html()) );
-    if(! otp_sent)
-    {
-        console.log( 0 );
-        console.log("Connection refused");
-        process.exit();
-    }
-
-    var token = await otp_token_command(cli.email, cli.password);
-
-    await page.type('input[name="otp"]', token);
-    await page.type('input[name="user_password"]', cli.blspass);
-    await Promise.all([
-      page.click('input[name="login"]'),
-      page.waitForNavigation({ waitUntil: 'load' })
-    ]);
-    await sleep(500);
-
-    /**
-     * Appointment Page
-     */
-    
-    await page.evaluate(() => { 
-        $(".popup-appCloseIcon").click();
-        $(".close").click();
-        $(".popupCloseIcon").click();
-    });
-
-    var is_logged_to_appointment = await page.evaluate(() => (/Appointment.*for.*the.*Visa.*Application.*Centre/im).test($("body").html()) );
-    if(!is_logged_to_appointment)
-    {
-        console.log( 0 );
-        console.log("Login to appointment page failed");
-        process.exit();
-    }
-    await sleep(500);
-    var get_centre_value = async(cli) => {
-        return page.evaluate(async (cli) => { 
-                return await new Promise(resolve => { 
-                    var  indexMatchingText = (ele, text) => {
-                        var patt = new RegExp(text, "gi");
-                        for (var i=0; i<ele.length;i++) {
-                            if (patt.test(ele[i].childNodes[0].nodeValue)){
-                                
-                                return ele[i].value;
-                                //return i;
-                            }
-                        }
-                        return undefined;
-                    };
-
-                    var select_input = document.querySelector("select[name=juridiction]");
-                    var center_id = indexMatchingText(select_input, cli.center);
-                    resolve(center_id);
-                });
-        }, cli);
-    };
-
-    var centre_id = await get_centre_value(cli);
-    await page.select('select[name=juridiction]', centre_id);
-    await sleep(500);
-    await page.evaluate(() => { 
-        $(".popup-appCloseIcon").click();
-        $(".close").click();
-        $(".popupCloseIcon").click();
-    });
-    await sleep(500);
-    var is_data_present = await page.evaluate(() => (document.getElementById("phone").value == "") );
-    if(is_data_present)
-    {
-        await page.type('input[name="phone"]', cli.phone);
-        await page.type('input[name="email"]', cli.email);
-    }
-    await sleep(1000);
-    
-    await page.hover('input[name=verification_code]');
-    await sleep(500);
-    await Promise.all([
-        page.click('input[name=verification_code]'),
-        page.waitForNavigation({ waitUntil: 'networkidle0' })
-    ]);
-    
-    await sleep(500);
-    var is_verification_code_sent = await page.evaluate(() => (/Verification.*code.*sent.*to.*your.*email./im).test($("body").html()) );
-    if(! is_verification_code_sent)
-    {
-        console.log(0);
-        console.log("verification code not sent");
-        process.exit();
-    }
-    await page.evaluate(() => { 
-        $(".popup-appCloseIcon").click();
-        $(".close").click();
-        $(".popupCloseIcon").click();
-    });
-    
-    await sleep(500);
-
-    var verification_token_command = async function(checkermail, checkerpass) {
-        const { stdout, stderr } = await exec( 'php artisan bls:requestverfication '+ checkermail + " " + checkerpass);
-        if(stderr) throw "error";
-        return  stdout.trim();
-    };
-    
-    var verification_code = await verification_token_command(cli.email, cli.password);
-    await page.type('input[name="otp"]', verification_code);
-    await sleep(500);
-    await page.hover('input[name=save]');
-    await sleep(500);
-    await Promise.all([
-        page.click('input[name=save]'),
-        page.waitForNavigation({ waitUntil: 'load' })
-    ]);
-    await sleep(500);
-    var is_agreement = await page.evaluate(() => (/I.*agree.*to.*provide.*my.*Consent/im).test($("body").html()) );
-    if(!is_agreement)
-    {
-        console.log(0);
-        console.log("Not Agreement page");
-        process.exit();
-    }
-    const cookies = await page.cookies();
-    
-    var headers = "";
-    cookies.forEach((currentValue, index, arr) => {
-        if((/PHPSESSID/im).test(currentValue.name))
+    try {
+        var config = await set_up_config();
+        var cli = await get_cli_arg();    
+        const browser = await puppeteer.launch();//{ headless: false }
+        const page = await browser.newPage();
+        
+        
+        
+        
+        // page.setUserAgent("userAgent");
+        /*
         {
-            headers = "PHPSESSID=" + currentValue.value ;
-
+            ignoreHTTPSErrors: true,
+            args: [ '--proxy-server=https://41.174.179.147:8080' ]
         }
-    });
-    if(! (/PHPSESSID/im).test(headers) )
-    {
+        */
+        
+        await page.setUserAgent(userAgent.toString());
+        var response = await page.goto(config.loginurl);
+        await sleep(500);
+
+        await page.type('input[name="user_email"]', cli.email);
+        await Promise.all([
+        page.click('input[name="continue"]'),
+        page.waitForNavigation({ waitUntil: 'networkidle0' })
+        ]);
+        
+        //Current session expired,Please click button again.
+        var captcha_error = await page.evaluate(() => (/Current session expired,Please click button again./im).test($("body").html()) );
+        if(captcha_error)
+        {
+            console.log( 0 );
+            console.log("captcha ERROR");
+            process.exit();
+        }
+        
+        var otp_already_sent = await page.evaluate(() => (/You have already sent OTP request.Please try after 30 min./im).test($("body").html()) );
+        if(otp_already_sent)
+        {
+            console.log( 0 );
+            console.log("Otp Already sent");
+            process.exit();
+        } //We've sent an OTP to the Email cummer.maroc@gmail.com. Please enter it below to complete verification.
+        
+        var otp_sent = await page.evaluate(() => (/We've sent an OTP to the Email/im).test($("body").html()) );
+        if(! otp_sent)
+        {
+            console.log( 0 );
+            console.log("Connection refused");
+            process.exit();
+        }
+
+        var token = await otp_token_command(cli.email, cli.password);
+
+        await page.type('input[name="otp"]', token);
+        await page.type('input[name="user_password"]', cli.blspass);
+        await Promise.all([
+        page.click('input[name="login"]'),
+        page.waitForNavigation({ waitUntil: 'load' })
+        ]);
+        await sleep(500);
+
+        /**
+         * Appointment Page
+         */
+        
+        await page.evaluate(() => { 
+            $(".popup-appCloseIcon").click();
+            $(".close").click();
+            $(".popupCloseIcon").click();
+        });
+
+        var is_logged_to_appointment = await page.evaluate(() => (/Appointment.*for.*the.*Visa.*Application.*Centre/im).test($("body").html()) );
+        if(!is_logged_to_appointment)
+        {
+            console.log( 0 );
+            console.log("Login to appointment page failed");
+            process.exit();
+        }
+        await sleep(500);
+        var get_centre_value = async(cli) => {
+            return page.evaluate(async (cli) => { 
+                    return await new Promise(resolve => { 
+                        var  indexMatchingText = (ele, text) => {
+                            var patt = new RegExp(text, "gi");
+                            for (var i=0; i<ele.length;i++) {
+                                if (patt.test(ele[i].childNodes[0].nodeValue)){
+                                    
+                                    return ele[i].value;
+                                    //return i;
+                                }
+                            }
+                            return undefined;
+                        };
+
+                        var select_input = document.querySelector("select[name=juridiction]");
+                        var center_id = indexMatchingText(select_input, cli.center);
+                        resolve(center_id);
+                    });
+            }, cli);
+        };
+
+        var centre_id = await get_centre_value(cli);
+        await page.select('select[name=juridiction]', centre_id);
+        await sleep(500);
+        await page.evaluate(() => { 
+            $(".popup-appCloseIcon").click();
+            $(".close").click();
+            $(".popupCloseIcon").click();
+        });
+        await sleep(500);
+        var is_data_present = await page.evaluate(() => (document.getElementById("phone").value == "") );
+        if(is_data_present)
+        {
+            await page.type('input[name="phone"]', cli.phone);
+            await page.type('input[name="email"]', cli.email);
+        }
+        await sleep(1000);
+        
+        await page.hover('input[name=verification_code]');
+        await sleep(500);
+        await Promise.all([
+            page.click('input[name=verification_code]'),
+            page.waitForNavigation({ waitUntil: 'networkidle0' })
+        ]);
+        
+        await sleep(500);
+        var is_verification_code_sent = await page.evaluate(() => (/Verification.*code.*sent.*to.*your.*email./im).test($("body").html()) );
+        if(! is_verification_code_sent)
+        {
+            console.log(0);
+            console.log("verification code not sent");
+            process.exit();
+        }
+        await page.evaluate(() => { 
+            $(".popup-appCloseIcon").click();
+            $(".close").click();
+            $(".popupCloseIcon").click();
+        });
+        
+        await sleep(500);
+
+        var verification_token_command = async function(checkermail, checkerpass) {
+            const { stdout, stderr } = await exec( 'php artisan bls:requestverfication '+ checkermail + " " + checkerpass);
+            if(stderr) throw "error";
+            return  stdout.trim();
+        };
+        
+        var verification_code = await verification_token_command(cli.email, cli.password);
+        await page.type('input[name="otp"]', verification_code);
+        await sleep(500);
+        await page.hover('input[name=save]');
+        await sleep(500);
+        await Promise.all([
+            page.click('input[name=save]'),
+            page.waitForNavigation({ waitUntil: 'load' })
+        ]);
+        await sleep(500);
+        var is_agreement = await page.evaluate(() => (/I.*agree.*to.*provide.*my.*Consent/im).test($("body").html()) );
+        if(!is_agreement)
+        {
+            console.log(0);
+            console.log("Not Agreement page");
+            process.exit();
+        }
+        const cookies = await page.cookies();
+        
+        var headers = "";
+        cookies.forEach((currentValue, index, arr) => {
+            if((/PHPSESSID/im).test(currentValue.name))
+            {
+                headers = "PHPSESSID=" + currentValue.value ;
+
+            }
+        });
+        if(! (/PHPSESSID/im).test(headers) )
+        {
+            console.log(0);
+            console.log("php session Id not found");
+            process.exit();
+        }
+        
+        console.log(1);
+        console.log(headers);
+        await browser.close();
+        process.exit();
+    }catch(err) {
         console.log(0);
-        console.log("php session Id not found");
+        console.log(err);
         process.exit();
     }
-    
-     console.log(1);
-     console.log(headers);
-     await browser.close();
-     process.exit();
  })();

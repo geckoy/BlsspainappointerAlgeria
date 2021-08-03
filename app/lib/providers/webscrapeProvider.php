@@ -276,7 +276,7 @@ class webscrapeProvider implements webscrape
     }
     public function LOGGER($gmail_checker,$appointer)
     {
-        exec('node checker_logger.js '.$gmail_checker->gmail.' '.$gmail_checker->password.' "'.$gmail_checker->password_bls.'"', $output, $retval);
+        exec('node test.js '.$gmail_checker->gmail.' '.$gmail_checker->password.' "'.$gmail_checker->password_bls.'"', $output, $retval);
         $status = (bool)$output[0];
         if(! $status) return false;
         if($output[1] == "Appointment Available")
