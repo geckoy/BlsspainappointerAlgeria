@@ -36,11 +36,11 @@ class Kernel extends ConsoleKernel
         //$response = Http::get('http://localhost/');
         // $schedule->command('inspire')->hourly();
         $schedule->call(function () {
-            $appointer = resolve(blsappointer::class);
-            $return = $appointer->get_availability();
-            Log::alert("REturned Value");
-            Log::alert($return);
-
+            // $appointer = resolve(blsappointer::class);
+            // $return = $appointer->get_availability();
+            // Log::alert("REturned Value");
+            // Log::alert($return);
+            Log::alert("got called");
         })->everyMinute();
 
         // $schedule->call(function () {

@@ -181,8 +181,8 @@ class blsappointer
     {   
 
 
-        $status = $this->dom->get_availability($this);
-        return $status;
+        // $status = $this->dom->get_availability($this);
+        // return $status;
 
 
         $is_appointment_available = bls_setting::where("name", "is_appointment_available")->first();
