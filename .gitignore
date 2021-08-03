@@ -16,3 +16,6 @@ yarn-error.log
 /stats
 bookappointment_key.txt
 login_key.txt
+applicant_logger.js
+applicant_loggermaroc.js
+checker_logger.js
