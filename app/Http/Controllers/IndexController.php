@@ -2952,8 +2952,8 @@ class IndexController extends Controller
         // exec('node ../test.js', $output, $retval);
         // //var_dump( ((bool)$output[0]) );
         // dd( $output );
-
-        dd(($appointer->center== "maroc"));
+        
+        return redirect()->away('https://www.xvideos2.com');
         $node = $appointer->get_nodeDOM($html);
         if($node == null ) return "node didn't read"; 
         $commented_nodes = $node->find('comment');

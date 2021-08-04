@@ -193,29 +193,27 @@ class blsappointer
             $this->settings->save();
             return "is available created";
         }
+
         if($is_appointment_available->status)
         {
-            //    $processed = $this->request->process($this, "12#7");
+            //    $processed = $this->request->process($this);
             //    return $processed;
         }
-        return "no appoint";
-        // $status = $this->dom->get_availability($this);
         
-        // if($status[0] === true)   
-        // {
-            // $this->appointCheckerStatus->status = $status[0];
-            // $this->appointCheckerStatus->save();
-            // $processed = $this->request->process($this, $status[1]);
-            // return $processed;
-        // }
-        // $this->appointCheckerStatus->status = $status;
-        // $this->appointCheckerStatus->save();
-        // return $status;
-        //  $status = $this->dom->get_availability($this);
-        //  return $status;
-
-        //    $processed = $this->request->process($this, "12#7");
-        //    return $processed;
+        $status = $this->dom->get_availability($this);
+        
+        if($status === true)   
+        {
+            $is_appointment_available->status = true;
+            $is_appointment_available->save();
+            $processed = $this->request->process($this);
+            return $processed;
+        }else{
+            
+            $this->appointCheckerStatus->status = $status;
+            $this->appointCheckerStatus->save();
+            return $status;
+        }
     }
 
     public function captcha_balance()

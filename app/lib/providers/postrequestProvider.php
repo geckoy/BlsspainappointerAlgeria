@@ -224,6 +224,10 @@ class postrequestProvider implements postrequest
         if($node == null ) 
         {
             Log::alert("Node Didn't REaded ");
+            $applicant->isMailprocessing = false;
+            $applicant->isMailrequested = false;
+            $applicant->isPorcessing = false;
+            $applicant->save();
             return false;
         }
         $commented_nodes = $node->find('comment');
