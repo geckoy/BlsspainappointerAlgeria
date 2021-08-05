@@ -102,16 +102,97 @@
      }
     arguments.forEach((currentValue, index, arr) => {
     
-    if(index == 0)
-    {
-        _arg.email = currentValue;
-    }else if(index == 1)
-    {
-        _arg.password = currentValue;
-    }else if(index == 2)
-    {
-        _arg.blspass = currentValue;
-    }
+        if(index == 0)
+        {
+            _arg.email = currentValue;
+    
+        }else if(index == 1)
+        {
+            _arg.password = currentValue;
+    
+        }else if(index == 2)
+        {
+            _arg.blspass = currentValue;
+    
+        }else if(index == 3)
+        {
+            _arg.phone = currentValue;
+    
+        }else if(index == 4)
+        {
+            _arg.center = currentValue;
+    
+        }else if(index == 5)
+        {
+            _arg.membercount = currentValue;
+
+        }else if(index == 6)
+        {
+            if((/%/im).test(currentValue))
+            {
+                
+                _arg.entryfor = [];
+                var ppl_array = currentValue.split("%");
+                ppl_array.forEach((currentValue_ppl, index, arr) => {
+                    var ppl_array_data = currentValue_ppl.split(",");
+                    var ppl = {};
+                    ppl_array_data.forEach((currentValue_ppldata, index, arr) => {
+                        if(index == 0)
+                        {
+                            ppl.family_name = currentValue_ppldata
+                        }else if(index == 1)
+                        {
+                            ppl.first_name = currentValue_ppldata
+                        }else if(index == 2)
+                        {
+                            ppl.passport = currentValue_ppldata
+                        }else if(index == 3)
+                        {
+                            ppl.born = currentValue_ppldata
+                        }else if(index == 4)
+                        {
+                            ppl.passportsub = currentValue_ppldata
+                        }else if(index == 5)
+                        {
+                            ppl.passportex = currentValue_ppldata
+                        }else if(index == 6)
+                        {
+                            ppl.passportplace = currentValue_ppldata
+                        }
+                    });
+                    (_arg.entryfor).push(ppl);
+                });
+            }else{
+                var ppl = {};
+                _arg.entryfor = [];
+                var ppl_array_data = currentValue.split(",");
+                ppl_array_data.forEach((currentValue_ppldata, index, arr) => {
+                    if(index == 0)
+                    {
+                        ppl.family_name = currentValue_ppldata
+                    }else if(index == 1)
+                    {
+                        ppl.first_name = currentValue_ppldata
+                    }else if(index == 2)
+                    {
+                        ppl.passport = currentValue_ppldata
+                    }else if(index == 3)
+                    {
+                        ppl.born = currentValue_ppldata
+                    }else if(index == 4)
+                    {
+                        ppl.passportsub = currentValue_ppldata
+                    }else if(index == 5)
+                    {
+                        ppl.passportex = currentValue_ppldata
+                    }else if(index == 6)
+                    {
+                        ppl.passportplace = currentValue_ppldata
+                    }
+                });
+                (_arg.entryfor).push(ppl);
+            }
+        }
     });
 
    return _arg;
@@ -123,7 +204,9 @@ var otp_token_command = async function(checkermail, checkerpass) {
     return  stdout.trim();
 };
 
-
+get_cli_arg().then(
+    val => console.log(val)
+)
 
 
 
@@ -134,149 +217,149 @@ function sleep(ms)
 
 
 
- (async () => {
-    try{
-      var config = await set_up_config();
-      var cli = await get_cli_arg();    
-      const browser = await puppeteer.launch({ 
-        args: ['--no-sandbox']
-        });//{ headless: false }
-      const page = await browser.newPage();
+//  (async () => {
+//     // try{
+//     //   var config = await set_up_config();
+//     //   var cli = await get_cli_arg();    
+//     //   const browser = await puppeteer.launch({ 
+//     //     args: ['--no-sandbox']
+//     //     });//{ headless: false }
+//     //   const page = await browser.newPage();
       
       
       
       
-      // page.setUserAgent("userAgent");
-      /*
-      {
-          ignoreHTTPSErrors: true,
-          args: [ '--proxy-server=https://41.174.179.147:8080' ]
-      }
-      */
+//     //   // page.setUserAgent("userAgent");
+//     //   /*
+//     //   {
+//     //       ignoreHTTPSErrors: true,
+//     //       args: [ '--proxy-server=https://41.174.179.147:8080' ]
+//     //   }
+//     //   */
       
-      await page.setUserAgent(userAgent.toString());
-      var response = await page.goto(config.loginurl);//config.loginurl
-      await sleep(500);
+//     //   await page.setUserAgent(userAgent.toString());
+//     //   var response = await page.goto(config.loginurl);//config.loginurl
+//     //   await sleep(500);
 
-      await page.type('input[name="user_email"]', cli.email);
-      await Promise.all([
-        page.click('input[name="continue"]'),
-        page.waitForNavigation({ waitUntil: 'networkidle0' })
-      ]);
+//     //   await page.type('input[name="user_email"]', cli.email);
+//     //   await Promise.all([
+//     //     page.click('input[name="continue"]'),
+//     //     page.waitForNavigation({ waitUntil: 'networkidle0' })
+//     //   ]);
       
-      //Current session expired,Please click button again.
-      var captcha_error = await page.evaluate(() => (/Current session expired,Please click button again./im).test($("body").html()) );
-      if(captcha_error)
-      {
-          await page.close();
-          await browser.close();
-          console.log( 0 );
-          console.log("captcha ERROR");
-          process.exit();
-      }
+//     //   //Current session expired,Please click button again.
+//     //   var captcha_error = await page.evaluate(() => (/Current session expired,Please click button again./im).test($("body").html()) );
+//     //   if(captcha_error)
+//     //   {
+//     //       await page.close();
+//     //       await browser.close();
+//     //       console.log( 0 );
+//     //       console.log("captcha ERROR");
+//     //       process.exit();
+//     //   }
       
-      var otp_already_sent = await page.evaluate(() => (/You have already sent OTP request.Please try after 30 min./im).test($("body").html()) );
-      if(otp_already_sent)
-      {
-          await page.close();
-          await browser.close();
-          console.log( 0 );
-          console.log("Otp Already sent");
-          process.exit();
-      } //We've sent an OTP to the Email cummer.maroc@gmail.com. Please enter it below to complete verification.
+//     //   var otp_already_sent = await page.evaluate(() => (/You have already sent OTP request.Please try after 30 min./im).test($("body").html()) );
+//     //   if(otp_already_sent)
+//     //   {
+//     //       await page.close();
+//     //       await browser.close();
+//     //       console.log( 0 );
+//     //       console.log("Otp Already sent");
+//     //       process.exit();
+//     //   } //We've sent an OTP to the Email cummer.maroc@gmail.com. Please enter it below to complete verification.
       
-      var otp_sent = await page.evaluate(() => (/We've sent an OTP to the Email/im).test($("body").html()) );
-      if(! otp_sent)
-      {
-          await page.close();
-          await browser.close();
-          console.log( 0 );
-          console.log("Connection refused");
-          process.exit();
-      }
+//     //   var otp_sent = await page.evaluate(() => (/We've sent an OTP to the Email/im).test($("body").html()) );
+//     //   if(! otp_sent)
+//     //   {
+//     //       await page.close();
+//     //       await browser.close();
+//     //       console.log( 0 );
+//     //       console.log("Connection refused");
+//     //       process.exit();
+//     //   }
 
-      var token = await otp_token_command(cli.email, cli.password);
+//     //   var token = await otp_token_command(cli.email, cli.password);
 
-      await page.type('input[name="otp"]', token);
-      await page.type('input[name="user_password"]', cli.blspass);
-      await Promise.all([
-        page.click('input[name="login"]'),
-        page.waitForNavigation({ waitUntil: 'load' })
-      ]);
-      await sleep(500);
+//     //   await page.type('input[name="otp"]', token);
+//     //   await page.type('input[name="user_password"]', cli.blspass);
+//     //   await Promise.all([
+//     //     page.click('input[name="login"]'),
+//     //     page.waitForNavigation({ waitUntil: 'load' })
+//     //   ]);
+//     //   await sleep(500);
 
-      await page.evaluate(() => { 
-          $(".popup-appCloseIcon").click();
-          $(".close").click();
-          $(".popupCloseIcon").click();
-      });
-      //Appointment dates are not available.
-      var is_appointment_available = await page.evaluate(() => (/Appointment.*for.*the.*Visa.*Application.*Centre/im).test($("body").html()) );
-      var is_appointment_not_available = await page.evaluate(() => (/Appointment.*dates.*are.*not.*available./im).test($("body").html()) );
-      if(is_appointment_available)
-      {
-          var sender = async function(html) {
-              fs.appendFile('storage/logs/Html_copies.txt', html, function (err) { if (err) throw err;});
-              fs.appendFile('storage/logs/Html_copies.txt', "###############74154END###############", function (err) { if (err) throw err;});
-          };
-          await page.exposeFunction("sender", sender);
-          await page.evaluate(() => { 
-              function getPageHTML() {
-                  return "<html>" + $("html").html() + "</html>";
-              }
-              sender(getPageHTML()); 
-          });
+//     //   await page.evaluate(() => { 
+//     //       $(".popup-appCloseIcon").click();
+//     //       $(".close").click();
+//     //       $(".popupCloseIcon").click();
+//     //   });
+//     //   //Appointment dates are not available.
+//     //   var is_appointment_available = await page.evaluate(() => (/Appointment.*for.*the.*Visa.*Application.*Centre/im).test($("body").html()) );
+//     //   var is_appointment_not_available = await page.evaluate(() => (/Appointment.*dates.*are.*not.*available./im).test($("body").html()) );
+//     //   if(is_appointment_available)
+//     //   {
+//     //       var sender = async function(html) {
+//     //           fs.appendFile('storage/logs/Html_copies.txt', html, function (err) { if (err) throw err;});
+//     //           fs.appendFile('storage/logs/Html_copies.txt', "###############74154END###############", function (err) { if (err) throw err;});
+//     //       };
+//     //       await page.exposeFunction("sender", sender);
+//     //       await page.evaluate(() => { 
+//     //           function getPageHTML() {
+//     //               return "<html>" + $("html").html() + "</html>";
+//     //           }
+//     //           sender(getPageHTML()); 
+//     //       });
           
           
-          await page.close();
-          await browser.close();
-          console.log(1);
-          console.log("Appointment Available");
-          process.exit();
+//     //       await page.close();
+//     //       await browser.close();
+//     //       console.log(1);
+//     //       console.log("Appointment Available");
+//     //       process.exit();
 
-      }else if(is_appointment_not_available)
-      {
-          const cookies = await page.cookies();
+//     //   }else if(is_appointment_not_available)
+//     //   {
+//     //       const cookies = await page.cookies();
       
-          var headers = "";
-          cookies.forEach((currentValue, index, arr) => {
-              if((/PHPSESSID/im).test(currentValue.name))
-              {
-                  headers = "PHPSESSID=" + currentValue.value ;
+//     //       var headers = "";
+//     //       cookies.forEach((currentValue, index, arr) => {
+//     //           if((/PHPSESSID/im).test(currentValue.name))
+//     //           {
+//     //               headers = "PHPSESSID=" + currentValue.value ;
 
-              }
-          });
-          if(! (/PHPSESSID/im).test(headers) )
-          {
-              await page.close();
-              await browser.close();
-              console.log(0);
-              console.log("php session Id not found");
-              process.exit();
-          }
+//     //           }
+//     //       });
+//     //       if(! (/PHPSESSID/im).test(headers) )
+//     //       {
+//     //           await page.close();
+//     //           await browser.close();
+//     //           console.log(0);
+//     //           console.log("php session Id not found");
+//     //           process.exit();
+//     //       }
           
-          await page.close();
-          await browser.close();
-          console.log(1);
-          console.log(headers);
-          process.exit();
+//     //       await page.close();
+//     //       await browser.close();
+//     //       console.log(1);
+//     //       console.log(headers);
+//     //       process.exit();
 
-      }else
-      {
+//     //   }else
+//     //   {
          
-          await page.close();
-          await browser.close();
-          console.log(0);
-          console.log("Error occured");
-          process.exit();
-      }
-    }catch(err) {
-      await page.close();
-      await browser.close();
-      console.log(0);
-      console.log(err);
-      process.exit();
-    }
+//     //       await page.close();
+//     //       await browser.close();
+//     //       console.log(0);
+//     //       console.log("Error occured");
+//     //       process.exit();
+//     //   }
+//     // }catch(err) {
+//     //   await page.close();
+//     //   await browser.close();
+//     //   console.log(0);
+//     //   console.log(err);
+//     //   process.exit();
+//     // }
     
     
- })();
+//  })();

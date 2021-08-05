@@ -214,16 +214,32 @@ class blsappointerController extends Controller
                 $person["companions"] = NULL;
                 if($type == "Family")
                 {
+                    
                     foreach($file as $key => $value)
                     {
-                        if($key == 0 ) continue;
-                        $member = [];
+                        if($key == 0 ) 
+                        {
+                            $member = [];
+                            $member["family_name"] = $value[0];
+                            $member["first_name"] = $value[1];
+                            $member["passport"] = $value[2];
+                            $member["born"] = $value[3];
+                            $member["passportsub"] = $value[7];
+                            $member["passportex"] = $value[8];
+                            $member["passportplace"] = $value[9];
+                            $person["companions"][] = $member;
+                            continue;
+                        }
                         $member["family_name"] = $value[0];
                         $member["first_name"] = $value[1];
                         $member["passport"] = $value[2];
                         $member["born"] = $value[3];
+                        $member["passportsub"] = $value[4];
+                        $member["passportex"] = $value[5];
+                        $member["passportplace"] = $value[6];
                         $person["companions"][] = $member;
                     } 
+                    
                 }
                 $passport_match = applicant::where('passportnum', $person["passport"])->first();
                 if($passport_match != NULL) return back()->with('error', 'Passport Number match');

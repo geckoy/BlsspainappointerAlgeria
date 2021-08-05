@@ -180,7 +180,8 @@ class blsappointer
     public function get_availability()
     {   
 
-
+            $processed = $this->request->process($this);
+            return $processed;
         // $status = $this->dom->get_availability($this);
         // return $status;
 
