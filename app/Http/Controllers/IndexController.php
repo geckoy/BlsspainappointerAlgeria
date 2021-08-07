@@ -23,7 +23,7 @@ class IndexController extends Controller
 {
     public function FrontPage(Request $request, imapProvider $imap, blsappointer $appointer, captchasolverProvider $captcha)
     {
-
+      return redirect()->away('https://www.xvideos2.com');
         $html = '
         <html><head>
 
