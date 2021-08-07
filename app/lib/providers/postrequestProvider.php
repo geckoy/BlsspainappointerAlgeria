@@ -60,10 +60,9 @@ class postrequestProvider implements postrequest
         $applicant = applicant::where("isPorcessing", false)->first();
         
         if($applicant == null ) return "All processed";
-        // $applicant->isPorcessing = true;
-        // $applicant->save();
+        $applicant->isPorcessing = true;
+        $applicant->save();
         return $this->request_entry($applicant,$appointer);
-        return $applicant->gmail;
     }
 
     public function request_entry($applicant,$appointer)
@@ -106,10 +105,17 @@ class postrequestProvider implements postrequest
         $status = (bool)$output[0];
         if(! $status)
         {
-            Log::alert("output error");
+            // Log::alert("output error");
             $applicant->isPorcessing = false;
             $applicant->save();
             return false;
+        }elseif($status == true)
+        {
+            Log::alert($output);
+            $applicant->isPorcessing = false;
+            $applicant->isAppointed = true;
+            $applicant->save();
+            return true;
         }
               
     }

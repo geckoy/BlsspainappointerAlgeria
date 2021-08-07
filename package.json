@@ -16,6 +16,7 @@
         "postcss": "^8.1.14"
     },
     "dependencies": {
+        "imagetyperz-api": "^1.2.5",
         "imap": "^0.8.19",
         "mailparser": "^3.2.0",
         "mysql": "^2.18.1",

@@ -180,8 +180,8 @@ class blsappointer
     public function get_availability()
     {   
 
-            $processed = $this->request->process($this);
-            return $processed;
+        // $processed = $this->request->process($this);
+        // return $processed;
         // $status = $this->dom->get_availability($this);
         // return $status;
 
@@ -197,8 +197,8 @@ class blsappointer
 
         if($is_appointment_available->status)
         {
-            //    $processed = $this->request->process($this);
-            //    return $processed;
+            $processed = $this->request->process($this);
+            return $processed;
         }
         
         $status = $this->dom->get_availability($this);
