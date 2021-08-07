@@ -105,10 +105,11 @@ class postrequestProvider implements postrequest
         $status = (bool)$output[0];
         if(! $status)
         {
-            // Log::alert("output error");
+            Log::alert("output error");
+            Log::alert($output);
             $applicant->isPorcessing = false;
             $applicant->save();
-            return $output;
+            return false;
         }elseif($status == true)
         {
             Log::alert($output);
@@ -117,6 +118,8 @@ class postrequestProvider implements postrequest
             $applicant->save();
             return true;
         }
+        Log::alert("output error neither false or true");
+        Log::alert($output);
         return $output;
     }
 }
