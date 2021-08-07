@@ -777,3 +777,7 @@
     //         console.log(headers);
     //         await browser.close();
     //         process.exit();
+
+    { 
+        args: ['--no-sandbox']
+    }
