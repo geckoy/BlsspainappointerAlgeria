@@ -1,15 +1,21 @@
 const puppeteer = require('puppeteer');
-
+function sleep(ms) 
+{
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 (async () => {
   const browser = await puppeteer.launch({ 
     args: [ '--proxy-server=85.208.104.25:45785','--no-sandbox' ]
   });
   
   const page = await browser.newPage();
-  await page.goto('https://icanhazip.com/');
+  await page.goto('https://icanhazip.com/', {
+      waitUntil:'load'
+  });
+  
   //await page.screenshot({ path: 'example.png' });
   var ip_adress = await page.evaluate(() => {
-    $("body").text();
+    return document.querySelector("pre").textContent;
   });
   console.log(ip_adress);
   //await browser.close();
