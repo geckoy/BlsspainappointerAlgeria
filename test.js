@@ -1,8 +1,8 @@
 const puppeteer = require('puppeteer');
 
 (async () => {
-  const browser = await puppeteer.launch({ headless:false,
-    args: [ '--proxy-server=85.208.104.25:45785' ]
+  const browser = await puppeteer.launch({ 
+    args: [ '--proxy-server=85.208.104.25:45785','--no-sandbox' ]
   });
   
   const page = await browser.newPage();
