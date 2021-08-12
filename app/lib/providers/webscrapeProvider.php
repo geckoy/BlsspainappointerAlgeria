@@ -183,7 +183,7 @@ class webscrapeProvider implements webscrape
         $html = str_get_html($bookappointment_page["html_response"]);
         if($html == NULL) return "submission not readed";
         
-        if(preg_match("/Appointment for the Visa Application Centre/im",$bookappointment_page["html_response"]))
+        if(preg_match("/Select.*your.*juridiction/im",$bookappointment_page["html_response"]))
         {
             log::alert("When Apppointment is available");
             log::alert($bookappointment_page);
